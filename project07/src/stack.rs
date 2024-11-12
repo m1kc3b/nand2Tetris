@@ -28,6 +28,12 @@ impl<T> Stack<T> {
     self.data.push(x + y);
   }
 
+  fn sub(&mut self) {
+    let y = self.data.pop().unwrap();
+    let x = self.data.pop().unwrap();
+    self.data.push(x - y);
+  }
+
   fn neg(&mut self) {
     let y = self.data.pop().unwrap();
     self.data.push(-y);
