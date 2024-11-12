@@ -1,4 +1,6 @@
-use std::fs::File;
+use std::{fs::{read_to_string, File}, io};
+
+
 
 enum CommandType {
   C_ARITHMETIC,
@@ -13,13 +15,15 @@ enum CommandType {
 }
 
 struct Parser {
-  file: File
+  file: String
 }
 
 impl Parser {
   // Opens the input file/stream, and gets ready to parse it
-  fn new(file: File) -> Self {
-    todo!()
+  fn new(path: String) -> Result<Self, io::Error> {
+    let file = read_to_string(path)?;
+
+    Ok(Self { file: file })
   }
 
   // Are there more lines in the input ?
