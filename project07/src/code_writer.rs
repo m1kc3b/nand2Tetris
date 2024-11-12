@@ -1,11 +1,11 @@
 use std::fs::File;
 
 
-struct codeWriter {
+struct code_writer {
   file: File
 }
 
-impl codeWriter {
+impl code_writer {
   fn new(file: File) -> Self {
     todo!()
   }
