@@ -120,4 +120,40 @@ mod tests {
     let test_vec = vec![10,10];
     assert_eq!(test_vec, test_seg.data)
   }
+
+  #[test]
+  fn add_x2_and_y7_from_the_stack() {
+    let mut stack = Stack::new();
+    stack.data.push(2);
+    stack.data.push(7);
+
+    stack.add();
+
+    let test_stack = vec![9];
+    assert_eq!(stack.data, test_stack);
+  }
+
+  #[test]
+  fn sub_x2_and_y7_from_the_stack() {
+    let mut stack = Stack::new();
+    stack.data.push(2);
+    stack.data.push(7);
+
+    stack.sub();
+
+    let test_stack = vec![-5];
+    assert_eq!(stack.data, test_stack);
+  }
+
+  #[test]
+  fn neg_value_from_the_stack() {
+    let mut stack = Stack::new();
+    stack.data.push(2);
+    stack.data.push(7);
+
+    stack.neg();
+
+    let test_stack = vec![2, -7];
+    assert_eq!(stack.data, test_stack);
+  }
 }
