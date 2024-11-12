@@ -18,7 +18,7 @@ enum CommandType {
 }
 
 struct Parser {
-  file: String
+  commands: Vec<String>
 }
 
 impl Parser {
@@ -29,9 +29,10 @@ impl Parser {
     //   return Err(String::from("Le fichier doit avoir l'extension .asm"));
     // }
 
-    let file = read_to_string(path)?;
+    let file_content = read_to_string(path)?;
+    let commands: Vec<String> = file_content.lines().map(String::from).collect();
 
-    Ok(Self { file: file })
+    Ok(Self { commands })
   }
 
   // Are there more lines in the input ?
@@ -67,7 +68,7 @@ mod tests {
   fn open_the_test_file_and_create_the_parser_struct() {
     let parser = Parser::new("test_file.txt".to_string());
     if let Ok(p) = parser {
-      assert_eq!(p.file, "This is a test file...".to_string());
+      assert_eq!(p.commands, vec!["This is a test file...".to_string(), "Second line of this file.".to_string()]);
     }
   }
 }
