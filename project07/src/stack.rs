@@ -27,4 +27,9 @@ impl<T> Stack<T> {
     let x = self.data.pop().unwrap();
     self.data.push(x + y);
   }
+
+  fn neg(&mut self) {
+    let y = self.data.pop().unwrap();
+    self.data.push(-y);
+  }
 }
