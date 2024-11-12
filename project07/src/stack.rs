@@ -1,10 +1,10 @@
 
-struct Stack<T> {
-  data: Vec<T>,
+struct Stack {
+  data: Vec<i16>,
   sp: u16
 }
 
-impl<T> Stack<T> {
+impl Stack {
   fn new() -> Self {
     Self { 
       data: Vec::new(),
@@ -12,12 +12,12 @@ impl<T> Stack<T> {
      }
   }
 
-  fn push(&mut self, value: T) {
+  fn push(&mut self, value: i16) {
     self.data.push(value);
     self.sp += 1;
   }
 
-  fn pop(&mut self) -> Option<T> {
+  fn pop(&mut self) -> Option<i16> {
     self.sp -= 1;
     self.data.pop()
   }
