@@ -1,5 +1,6 @@
 mod parser;
 mod code_writer;
+mod stack;
 
 fn main() {
     println!("Hello, world!");
