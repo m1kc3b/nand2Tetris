@@ -23,7 +23,7 @@ impl Parser {
   }
 
   // Are there more lines in the input ?
-  fn hasMoreLines(&self) {
+  fn has_more_lines(&self) {
     todo!()
   }
 
@@ -33,7 +33,7 @@ impl Parser {
   }
 
   // Returns a constant representing the type of the current command.
-  fn commandType(&self) -> CommandType {
+  fn command_type(&self) -> CommandType {
     todo!()
   }
 

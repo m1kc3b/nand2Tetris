@@ -1,22 +1,22 @@
 use std::fs::File;
 
 
-struct code_writer {
+struct CodeWriter {
   file: File
 }
 
-impl code_writer {
+impl CodeWriter {
   fn new(file: File) -> Self {
     todo!()
   }
 
   // Writes to the output file the assembly code that implements the given arithmetic-logical command
-  fn writeArithmetic(&mut self, command: String) {
+  fn write_arithmetic(&mut self, command: String) {
     todo!()
   }
 
   // Writes to the output file the assembly code that implements the given push or pop command
-  fn writePushPop(&mut self, command: String, segment: String, index: i16) {
+  fn write_push_pop(&mut self, command: String, segment: String, index: i16) {
     todo!()
   }
 
