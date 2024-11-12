@@ -1,4 +1,7 @@
-use std::{fs::{read_to_string, File}, io};
+use std::fs::File;
+use std::fs::read_to_string;
+use std::io::Error;
+use std::path::Path;
 
 
 
@@ -20,7 +23,12 @@ struct Parser {
 
 impl Parser {
   // Opens the input file/stream, and gets ready to parse it
-  fn new(path: String) -> Result<Self, io::Error> {
+  fn new(path: String) -> Result<Self, Error> {
+    // Checking the extension (.asm)
+    // if Path::new(&path).extension().map_or(false, |ext| ext == "asm") {
+    //   return Err(String::from("Le fichier doit avoir l'extension .asm"));
+    // }
+
     let file = read_to_string(path)?;
 
     Ok(Self { file: file })
@@ -49,5 +57,17 @@ impl Parser {
   // Returns the second argument of the current command
   fn arg2(&self) {
     todo!()
+  }
+}
+
+mod tests {
+  use super::*;
+
+  #[test]
+  fn open_the_test_file_and_create_the_parser_struct() {
+    let parser = Parser::new("test_file.txt".to_string());
+    if let Ok(p) = parser {
+      assert_eq!(p.file, "This is a test file...".to_string());
+    }
   }
 }
