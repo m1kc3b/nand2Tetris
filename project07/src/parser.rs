@@ -4,7 +4,7 @@ use std::io::Error;
 use std::path::Path;
 
 
-
+#[derive(Debug, PartialEq, Eq)]
 enum CommandType {
   C_ARITHMETIC,
   C_PUSH,
@@ -53,8 +53,25 @@ impl Parser {
   }
 
   // Returns a constant representing the type of the current command.
-  fn command_type(&self) -> CommandType {
-    todo!()
+  fn command_type(&mut self) -> Option<CommandType> {
+    if let Some(command) = self.advance() {
+      let cmd: Vec<&str> = command.split(" ").collect();
+      match cmd[0] {
+        "push" => return Some(CommandType::C_PUSH),
+        "pop" => return  Some(CommandType::C_POP),
+        "add" => return  Some(CommandType::C_ARITHMETIC),
+        "sub" => return  Some(CommandType::C_ARITHMETIC),
+        "neg" => return  Some(CommandType::C_ARITHMETIC),
+        "eq" => return  Some(CommandType::C_ARITHMETIC),
+        "gt" => return  Some(CommandType::C_ARITHMETIC),
+        "lt" => return  Some(CommandType::C_ARITHMETIC),
+        "and" => return  Some(CommandType::C_ARITHMETIC),
+        "or" => return  Some(CommandType::C_ARITHMETIC),
+        "not" => return  Some(CommandType::C_ARITHMETIC),
+        _ => return None
+      }
+    }
+    None
   }
 
   // Returns the first argument of the current command
@@ -103,6 +120,14 @@ mod tests {
       assert_eq!(p.advance(), Some("This is a test file..."));
       assert_eq!(p.advance(), Some("Second line of this file."));
       assert_eq!(p.advance(), None);
+    }
+  }
+
+  #[test]
+  fn command_type_should_be_c_arithmetic() {
+    let parser = Parser::new("ProgramTest.asm".to_string());
+    if let Ok(mut p) = parser {
+      assert_eq!(p.command_type(), Some(CommandType::C_PUSH));
     }
   }
 }
