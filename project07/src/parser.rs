@@ -75,13 +75,21 @@ impl Parser {
   }
 
   // Returns the first argument of the current command
-  fn arg1(&self) -> String {
-    todo!()
+  fn arg1(&mut self) -> Option<&str> {
+    if let Some(command) = self.advance() {
+      let args: Vec<&str> = command.split(" ").collect();
+      return Some(args[0]);
+    }
+    None
   }
 
   // Returns the second argument of the current command
-  fn arg2(&self) {
-    todo!()
+  fn arg2(&mut self) -> Option<&str>{
+    if let Some(command) = self.advance() {
+      let args: Vec<&str> = command.split(" ").collect();
+      return Some(args[1]);
+    }
+    None
   }
 }
 
@@ -128,6 +136,38 @@ mod tests {
     let parser = Parser::new("ProgramTest.asm".to_string());
     if let Ok(mut p) = parser {
       assert_eq!(p.command_type(), Some(CommandType::C_PUSH));
+    }
+  }
+
+  #[test]
+  fn arg1_should_be_push() {
+    let parser = Parser::new("ProgramTest.asm".to_string());
+    if let Ok(mut p) = parser {
+      assert_eq!(p.arg1(), Some("push"));
+    }
+  }
+
+  #[test]
+  fn arg1_should_not_be_pop() {
+    let parser = Parser::new("ProgramTest.asm".to_string());
+    if let Ok(mut p) = parser {
+      assert_ne!(p.arg1(), Some("pop"));
+    }
+  }
+
+  #[test]
+  fn arg2_should_be_local() {
+    let parser = Parser::new("ProgramTest.asm".to_string());
+    if let Ok(mut p) = parser {
+      assert_eq!(p.arg2(), Some("local"));
+    }
+  }
+
+  #[test]
+  fn arg2_should_not_be_this() {
+    let parser = Parser::new("ProgramTest.asm".to_string());
+    if let Ok(mut p) = parser {
+      assert_ne!(p.arg2(), Some("this"));
     }
   }
 }
