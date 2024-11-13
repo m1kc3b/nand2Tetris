@@ -18,7 +18,8 @@ enum CommandType {
 }
 
 struct Parser {
-  commands: Vec<String>
+  commands: Vec<String>,
+  index: usize,
 }
 
 impl Parser {
@@ -32,17 +33,23 @@ impl Parser {
     let file_content = read_to_string(path)?;
     let commands: Vec<String> = file_content.lines().map(String::from).collect();
 
-    Ok(Self { commands })
+    Ok(Self { commands, index: 0 })
   }
 
   // Are there more lines in the input ?
-  fn has_more_lines(&self) {
-    todo!()
+  fn has_more_lines(&self) -> bool {
+    self.index < self.commands.len()
   }
 
   // Reads the next command from the input and makes it the current command
-  fn advance(&self) {
-    todo!()
+  fn advance(&mut self) -> Option<&str> {
+    if self.index < self.commands.len() {
+      let command = &self.commands[self.index];
+      self.index += 1;
+      Some(command)
+    } else {
+      None
+    }
   }
 
   // Returns a constant representing the type of the current command.
@@ -69,6 +76,33 @@ mod tests {
     let parser = Parser::new("test_file.txt".to_string());
     if let Ok(p) = parser {
       assert_eq!(p.commands, vec!["This is a test file...".to_string(), "Second line of this file.".to_string()]);
+    }
+  }
+
+  #[test]
+  fn parser_should_have_more_lines() {
+    let parser = Parser::new("test_file.txt".to_string());
+    if let Ok(p) = parser {
+      assert_eq!(p.has_more_lines(), true);
+    }
+  }
+
+  #[test]
+  fn parser_should_not_have_more_lines() {
+    let parser = Parser::new("test_file_with_one_line.txt".to_string());
+    if let Ok(mut p) = parser {
+      p.index = 1;
+      assert_eq!(p.has_more_lines(), false);
+    }
+  }
+
+  #[test]
+  fn reading_current_command_should_return_this_is_a_test_file() {
+    let parser = Parser::new("test_file.txt".to_string());
+    if let Ok(mut p) = parser {
+      assert_eq!(p.advance(), Some("This is a test file..."));
+      assert_eq!(p.advance(), Some("Second line of this file."));
+      assert_eq!(p.advance(), None);
     }
   }
 }
