@@ -78,7 +78,7 @@ impl Parser {
   fn arg1(&mut self) -> Option<&str> {
     if let Some(command) = self.advance() {
       let args: Vec<&str> = command.split(" ").collect();
-      return Some(args[0]);
+      return Some(args[1]);
     }
     None
   }
@@ -87,7 +87,7 @@ impl Parser {
   fn arg2(&mut self) -> Option<&str>{
     if let Some(command) = self.advance() {
       let args: Vec<&str> = command.split(" ").collect();
-      return Some(args[1]);
+      return Some(args[2]);
     }
     None
   }
@@ -140,34 +140,34 @@ mod tests {
   }
 
   #[test]
-  fn arg1_should_be_push() {
+  fn arg1_should_be_local() {
     let parser = Parser::new("ProgramTest.asm".to_string());
     if let Ok(mut p) = parser {
-      assert_eq!(p.arg1(), Some("push"));
+      assert_eq!(p.arg1(), Some("local"));
     }
   }
 
   #[test]
-  fn arg1_should_not_be_pop() {
+  fn arg1_should_not_be_argument() {
     let parser = Parser::new("ProgramTest.asm".to_string());
     if let Ok(mut p) = parser {
-      assert_ne!(p.arg1(), Some("pop"));
+      assert_ne!(p.arg1(), Some("argument"));
     }
   }
 
   #[test]
-  fn arg2_should_be_local() {
+  fn arg2_should_be_one() {
     let parser = Parser::new("ProgramTest.asm".to_string());
     if let Ok(mut p) = parser {
-      assert_eq!(p.arg2(), Some("local"));
+      assert_eq!(p.arg2(), Some("1"));
     }
   }
 
   #[test]
-  fn arg2_should_not_be_this() {
+  fn arg2_should_not_be_three() {
     let parser = Parser::new("ProgramTest.asm".to_string());
     if let Ok(mut p) = parser {
-      assert_ne!(p.arg2(), Some("this"));
+      assert_ne!(p.arg2(), Some("3"));
     }
   }
 }
