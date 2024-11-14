@@ -20,12 +20,12 @@ pub fn vmtranslator(arguments: Vec<String>) {
       let segment = new_parser.arg1();
       // get args2
       let index = new_parser.arg2();
-      // if C_PUSH or C_POP -> code_writer.write_push_pop
+      // if C_PUSH or C_POP -> code_writer.write_push_pop + parser.advance
       if let Some(CommandType::C_PUSH) | Some(CommandType::C_POP) = &cmd_type {
-        output_file.write_push_pop(&command, &segment, index)
+        output_file.write_push_pop(&command, &segment, index);
+        new_parser.advance();
       }
-      // if C_arithmetic -> code_writer.write_arithmetic
-      // parser.advance
+      // if C_arithmetic -> code_writer.write_arithmetic + parser.advance
       output_file.write_arithmetic(command);
       new_parser.advance();
   }
