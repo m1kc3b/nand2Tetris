@@ -1,4 +1,5 @@
 use std::{fs::File, io::Write};
+use crate::parser::CommandType;
 
 pub struct CodeWriter {
   file: File
@@ -22,10 +23,18 @@ impl CodeWriter {
   }
 
   // Writes to the output file the assembly code that implements the given push or pop command
-  pub fn write_push_pop(&mut self, command: &str, segment: &str, index: i16) -> std::io::Result<()> {
+  pub fn write_push_pop(&mut self, command: Option<CommandType>, segment: &str, index: i16) -> std::io::Result<()> {
     // Check the command_type (C_PUSH or C_POP)
-    let command = format!("{command} {segment} {index}/n");
-    self.file.write(command.as_bytes())?;
+    match command {
+      Some(CommandType::C_PUSH) => {
+        let command = format!("push {segment} {index}/n");
+        self.file.write(command.as_bytes())?;
+      },
+      _ => {
+        let command = format!("pop {segment} {index}/n");
+        self.file.write(command.as_bytes())?;
+      }
+    }
     Ok(())
   }
 
