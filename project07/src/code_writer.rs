@@ -1,11 +1,12 @@
 use std::{fs::File, io::Write};
 
-struct CodeWriter {
+pub struct CodeWriter {
   file: File
 }
 
 impl CodeWriter {
-  fn new(filename: String) -> Result<Self, String> {
+  pub fn new(file: &str) -> Result<Self, String> {
+    let filename = file.split(".").next().unwrap_or(file);
     let file = File::create_new(format!("{}.asm", filename));
 
     if let Ok(f) = file {
@@ -15,23 +16,23 @@ impl CodeWriter {
   }
 
   // Writes to the output file the assembly code that implements the given arithmetic-logical command
-  fn write_arithmetic(&mut self, command: String) {
-    let file = self.file;
-    file.write(command);
+  pub fn write_arithmetic(&mut self, command: String) -> std::io::Result<()>{
+    self.file.write(command.as_bytes())?;
+    Ok(())
   }
 
   // Writes to the output file the assembly code that implements the given push or pop command
-  fn write_push_pop(&mut self, command: String, segment: String, index: i16) {
-    let file = self.file;
+  pub fn write_push_pop(&mut self, command: String, segment: String, index: i16) -> std::io::Result<()> {
     // Check the command_type (C_PUSH or C_POP)
-    let command = format!("{command} {segment} {index}");
-    file.write(command);
+    let command = format!("{command} {segment} {index}/n");
+    self.file.write(command.as_bytes())?;
+    Ok(())
   }
 
   // Closes the output file/stream
-  fn closes(&self) {
-    todo!()
-  }
+  // fn closes(&self) {
+  //   todo!()
+  // }
 }
 
 

@@ -1,17 +1,18 @@
-mod parser;
+use std::env;
+
+use vm_translator::vmtranslator;
+
 mod code_writer;
+mod parser;
 mod stack;
+mod vm_translator;
 
 fn main() {
-    println!("Hello, world!");
-
-}
-
-// This is the main program that drives the translation process, using the services of a Parser and a CodeWriter.
-fn vmtranslator() {
     // The program gets the name of the input source file, say Prog.vm, from the command-line argument.
-    // It constructs a Parser
-    // And constructs an output file, Prog.asm
-    // Loop: iteartes through the VM commands in the input file
-
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        eprintln!("Aucun fichier fourni !");
+        std::process::exit(1);
+    }
+    vmtranslator(args);
 }
