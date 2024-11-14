@@ -14,6 +14,10 @@ pub fn vmtranslator(arguments: Vec<String>) {
   while new_parser.has_more_lines() == true {
       // commands[index]
       let command = &new_parser.commands[new_parser.index];
+      // handle comments & empty lines
+      if command.starts_with("//") | command.is_empty() {
+        new_parser.advance();
+      }
       // command_type
       let cmd_type = new_parser.command_type();
       // get args1
