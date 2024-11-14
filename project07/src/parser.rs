@@ -16,8 +16,8 @@ pub enum CommandType {
 }
 
 pub struct Parser {
-  commands: Vec<String>,
-  index: usize,
+  pub commands: Vec<String>,
+  pub index: usize,
 }
 
 impl Parser {
@@ -72,7 +72,7 @@ impl Parser {
   }
 
   // Returns the second argument of the current command
-  pub fn arg2(&mut self) -> Option<&str>{
+  pub fn arg2(&self) -> Option<&str>{
     let command = &self.commands[self.index];
     let args: Vec<&str> = command.split(" ").collect();
     Some(args[2])

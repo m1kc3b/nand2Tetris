@@ -16,13 +16,13 @@ impl CodeWriter {
   }
 
   // Writes to the output file the assembly code that implements the given arithmetic-logical command
-  pub fn write_arithmetic(&mut self, command: String) -> std::io::Result<()>{
+  pub fn write_arithmetic(&mut self, command: &str) -> std::io::Result<()>{
     self.file.write(command.as_bytes())?;
     Ok(())
   }
 
   // Writes to the output file the assembly code that implements the given push or pop command
-  pub fn write_push_pop(&mut self, command: String, segment: String, index: i16) -> std::io::Result<()> {
+  pub fn write_push_pop(&mut self, command: &str, segment: &str, index: i16) -> std::io::Result<()> {
     // Check the command_type (C_PUSH or C_POP)
     let command = format!("{command} {segment} {index}/n");
     self.file.write(command.as_bytes())?;
