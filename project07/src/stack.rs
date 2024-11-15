@@ -2,19 +2,19 @@ const MEMORY_SIZE: usize = 32 * 1024;
 
 struct VirtualRAM {
   memory: Vec<i16>,
-  sp: usize,
-  lcl: usize,
-  arg: usize,
-  this: usize,
-  that: usize,
-  temp_start: usize,
+  sp: usize,              // stack pointer
+  lcl: usize,             // LOCAL: function's local variables
+  arg: usize,             // ARGUMENT: function's arguments
+  this: usize,            // THIS: pointer
+  that: usize,            // THAT: pointer
+  temp_start: usize,      // TEMP: temporary variables
   temp_end: usize,
-  r13: usize,
-  r14: usize,
-  r15: usize,
-  static_start: usize,
+  r13: usize,             // R13: register
+  r14: usize,             // R14:
+  r15: usize,             // R15:
+  static_start: usize,    // STATIC: static variables seen by the function
   static_end: usize,
-  stack_start: usize,
+  stack_start: usize,     // STACK
   stack_end: usize,
 }
 
@@ -56,23 +56,27 @@ impl VirtualRAM {
 
   fn resolve_segment(&self, segment: &str, index: usize) -> usize {
     match segment {
-      "argument" => self.arg,
       "local" => self.lcl,
-      "static" => {
-        if index > self.static_end - self.static_start {
-          panic!("Index out of bounds for STATIC segment");
+      "argument" => self.arg,
+      "pointer" => {
+        match index {
+          0 => self.this,
+          1 => self.that,
+          _ => panic!("Index out of bounds for POINTER segment"),
         }
-        self.static_start + index
       },
-      "constant" => todo!(),
-      "this" => self.this,
-      "that" => self.that,
-      "pointer" => todo!(),
       "temp" => {
         if index > self.temp_end - self.temp_start {
           panic!("Index out of bounds for TEMP segment");
         }
         self.temp_start + index
+      },
+      "constant" => self.sp,
+      "static" => {
+        if index > self.static_end - self.static_start {
+          panic!("Index out of bounds for STATIC segment");
+        }
+        self.static_start + index
       },
       _ => panic!("Invalid segment name"),
     }
