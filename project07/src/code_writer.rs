@@ -1,6 +1,5 @@
 use std::{fs::File, io::Write};
 use crate::parser::CommandType;
-use crate::st
 
 pub struct CodeWriter {
   file: File
@@ -29,20 +28,17 @@ impl CodeWriter {
     match command {
       Some(CommandType::C_PUSH) => {
         // push segment i
-        // get segment[i]
-        // stack = 
-        
-        self.file.write(command.as_bytes())?;
+        // self.file.write(command.as_bytes())?;
       },
       _ => {
         // pop segment i
-        self.file.write(command.as_bytes())?;
+        // self.file.write(command.as_bytes())?;
       }
     }
     Ok(())
   }
 
-  // Closes the output file/stream
+  // Closes the output file/stream => Not necessary in Rust
   // fn closes(&self) {
   //   todo!()
   // }
