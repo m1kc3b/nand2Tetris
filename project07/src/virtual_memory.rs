@@ -1,6 +1,6 @@
 const MEMORY_SIZE: usize = 32 * 1024;
 
-struct VirtualRAM {
+pub struct VirtualRAM {
   memory: Vec<i16>,
   sp: usize,              // stack pointer
   lcl: usize,             // LOCAL: function's local variables
@@ -19,7 +19,7 @@ struct VirtualRAM {
 }
 
 impl VirtualRAM {
-  fn new() -> Self {
+  pub fn new() -> Self {
     Self { 
       memory: vec![0; MEMORY_SIZE],
       sp: 256,
@@ -40,7 +40,7 @@ impl VirtualRAM {
   }
 
   // push value from segment[index] in the Stack
-  fn push(&mut self, segment: &str, index: usize) {
+  pub fn push(&mut self, segment: &str, index: usize) {
     let address = self.resolve_segment(segment, index);
     let value = self.memory[address];
     self.memory[self.sp] = value;
@@ -48,7 +48,7 @@ impl VirtualRAM {
   }
 
   // pop Stack value to push it in segment[index]
-  fn pop(&mut self, segment: &mut &str, index: usize) {
+  pub fn pop(&mut self, segment: &mut &str, index: usize) {
     let value = self.memory[self.sp];
     let address = self.resolve_segment(segment, index);
     self.memory[address] = value
@@ -83,7 +83,7 @@ impl VirtualRAM {
   }
 
   // integer addition (x + y)
-  fn add(&mut self) {
+  pub fn add(&mut self) {
     let y = self.memory[self.sp];
     self.memory[self.sp] = 0;
     self.sp -= 1;
@@ -93,7 +93,7 @@ impl VirtualRAM {
   }
 
   // integer substraction (x - y)
-  fn sub(&mut self) {
+  pub fn sub(&mut self) {
     let y = self.memory[self.sp];
     self.memory[self.sp] = 0;
     self.sp -= 1;
@@ -103,13 +103,13 @@ impl VirtualRAM {
   }
 
   // arithmetic negation (-y)
-  fn neg(&mut self) {
+  pub fn neg(&mut self) {
     let y = self.memory[self.sp];
     self.memory[self.sp] = -y;
   }
 
   // equality (x == y)
-  fn eq(&mut self) {
+  pub fn eq(&mut self) {
     let y = self.memory[self.sp];
     self.memory[self.sp] = 0;
     self.sp -= 1;
@@ -122,7 +122,7 @@ impl VirtualRAM {
   }
 
   // greater than (x > y)
-  fn gt(&mut self) {
+  pub fn gt(&mut self) {
     let y = self.memory[self.sp];
     self.memory[self.sp] = 0;
     self.sp -= 1;
@@ -135,7 +135,7 @@ impl VirtualRAM {
   }
 
   // less than (x < y)
-  fn lt(&mut self) {
+  pub fn lt(&mut self) {
     let y = self.memory[self.sp];
     self.memory[self.sp] = 0;
     self.sp -= 1;
@@ -147,7 +147,7 @@ impl VirtualRAM {
   }
 
   // bit-wise And (x And y)
-  fn and(&mut self) {
+  pub fn and(&mut self) {
     let y = self.memory[self.sp];
     self.memory[self.sp] = 0;
     self.sp -= 1;
@@ -157,7 +157,7 @@ impl VirtualRAM {
   }
 
   // bit-wise Or (x Or y)
-  fn or(&mut self) {
+  pub fn or(&mut self) {
     let y = self.memory[self.sp];
     self.memory[self.sp] = 0;
     self.sp -= 1;
@@ -167,7 +167,7 @@ impl VirtualRAM {
   }
 
   // bit-wise Not (Not y)
-  fn not(&mut self) {
+  pub fn not(&mut self) {
     let y = self.memory[self.sp];
     self.memory[self.sp] = !y;
   }
