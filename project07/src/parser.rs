@@ -72,10 +72,15 @@ impl Parser {
   }
 
   // Returns the second argument of the current command
-  pub fn arg2(&self) -> Option<&str>{
+  pub fn arg2(&self) -> Option<i16>{
     let command = &self.commands[self.index];
-    let args: Vec<&str> = command.split(" ").collect();
-    Some(args[2])
+    let args: Vec<&str> = command.split_whitespace().collect();
+
+    if let Some(arg) = args.get(2) {
+      arg.parse::<i16>().ok()
+    } else {
+      None
+    }
   }
 }
 
