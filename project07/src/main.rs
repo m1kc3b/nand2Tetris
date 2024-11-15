@@ -4,7 +4,7 @@ use vm_translator::vmtranslator;
 
 mod code_writer;
 mod parser;
-mod stack;
+mod virtual_memory;
 mod vm_translator;
 
 fn main() {

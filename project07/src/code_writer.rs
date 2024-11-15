@@ -1,5 +1,6 @@
 use std::{fs::File, io::Write};
 use crate::parser::CommandType;
+use crate::st
 
 pub struct CodeWriter {
   file: File
@@ -27,11 +28,14 @@ impl CodeWriter {
     // Check the command_type (C_PUSH or C_POP)
     match command {
       Some(CommandType::C_PUSH) => {
-        let command = format!("push {segment} {index}/n");
+        // push segment i
+        // get segment[i]
+        // stack = 
+        
         self.file.write(command.as_bytes())?;
       },
       _ => {
-        let command = format!("pop {segment} {index}/n");
+        // pop segment i
         self.file.write(command.as_bytes())?;
       }
     }
