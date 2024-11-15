@@ -17,15 +17,22 @@ pub fn vmtranslator(arguments: Vec<String>) {
 
       match command_type {
         Some(CommandType::C_PUSH | CommandType::C_POP) => {
-          let segment = parser.arg1().unwrap();   // Handling Result
-          let index = parser.arg2().unwrap();      // Handling Result
-          code_writer.write_push_pop(command_type, &segment, index);
+          let segment = parser.arg1().unwrap();                     // TODO: Handling Result
+          let index = parser.arg2().unwrap();                        // TODO: Handling Result
+          code_writer.write_push_pop(command_type, &segment, index);      // Handle command line
+          parser.advance();                                               // Increment index to read next line
+          continue;                                                       // Move to the next loop
         },
         Some(CommandType::C_ARITHMETIC) => {
-          let command: Vec<&str> = parser.commands[parser.index].split_whitespace().collect();      // Handling Result
-          code_writer.write_arithmetic(&command[0]);
+          let command: Vec<&str> = parser.commands[parser.index].split_whitespace().collect();     // TODO: Handling Result
+          code_writer.write_arithmetic(&command[0]);                                       // Handle command line
+          parser.advance();                                                                         // Next line
+          continue;                                                                                 // Next loop
         },
-        _ => parser.advance(),
+        _ => {
+          parser.advance(); // Next line
+          continue;         // Next loop
+        }
       }
   }
 }
