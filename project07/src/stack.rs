@@ -1,98 +1,171 @@
+const MEMORY_SIZE: usize = 32 * 1024;
 
-struct Stack {
-  data: Vec<i16>,
-  sp: u8
+struct VirtualRAM {
+  memory: Vec<i16>,
+  sp: usize,
+  lcl: usize,
+  arg: usize,
+  this: usize,
+  that: usize,
+  temp_start: usize,
+  temp_end: usize,
+  r13: usize,
+  r14: usize,
+  r15: usize,
+  static_start: usize,
+  static_end: usize,
+  stack_start: usize,
+  stack_end: usize,
 }
 
-struct Segment {
-  name: String,
-  data: Vec<i16>
-}
-
-impl Segment {
-  fn new(segment_name: String) -> Self {
-    Self {
-      name: segment_name,
-      data: Vec::new()
-    }
-  }
-}
-
-impl Stack {
+impl VirtualRAM {
   fn new() -> Self {
     Self { 
-      data: Vec::new(),
-      sp: 0,
+      memory: vec![0; MEMORY_SIZE],
+      sp: 256,
+      lcl: 1,
+      arg: 2,
+      this: 3,
+      that: 4,
+      temp_start: 5,
+      temp_end: 12,
+      r13: 13,
+      r14: 14,
+      r15: 15,
+      static_start: 16,
+      static_end: 255,
+      stack_start: 256,
+      stack_end: 2047,
      }
   }
 
   // push value from segment[index] in the Stack
-  fn push(&mut self, segment: &Segment, index: usize) {
-    let value = segment.data[index];
-    self.data.push(value);
+  fn push(&mut self, segment: &str, index: usize) {
+    let address = self.resolve_segment(segment, index);
+    let value = self.memory[address];
+    self.memory[self.sp] = value;
     self.sp += 1;
   }
 
   // pop Stack value to push it in segment[index]
-  fn pop(&mut self, segment: &mut Segment, index: usize) {
-    self.sp -= 1;
-    let value = self.data.pop().unwrap();
+  fn pop(&mut self, segment: &mut &str, index: usize) {
+    let value = self.memory[self.sp];
+    let address = self.resolve_segment(segment, index);
+    self.memory[address] = value
+  }
 
-    if index >= segment.data.len() {
-      segment.data.resize_with(index + 1, || 0);
-      segment.data[index] = value;
+  fn resolve_segment(&self, segment: &str, index: usize) -> usize {
+    match segment {
+      "argument" => self.arg,
+      "local" => self.lcl,
+      "static" => {
+        if index > self.static_end - self.static_start {
+          panic!("Index out of bounds for STATIC segment");
+        }
+        self.static_start + index
+      },
+      "constant" => todo!(),
+      "this" => self.this,
+      "that" => self.that,
+      "pointer" => todo!(),
+      "temp" => {
+        if index > self.temp_end - self.temp_start {
+          panic!("Index out of bounds for TEMP segment");
+        }
+        self.temp_start + index
+      },
+      _ => panic!("Invalid segment name"),
     }
-    segment.data[index] = value;
   }
 
   // integer addition (x + y)
   fn add(&mut self) {
-    let y = self.data.pop().unwrap();
-    let x = self.data.pop().unwrap();
-    self.data.push(x + y);
+    let y = self.memory[self.sp];
+    self.memory[self.sp] = 0;
+    self.sp -= 1;
+    let x = self.memory[self.sp];
+    let result = x + y;
+    self.memory[self.sp] = result;
   }
 
   // integer substraction (x - y)
   fn sub(&mut self) {
-    let y = self.data.pop().unwrap();
-    let x = self.data.pop().unwrap();
-    self.data.push(x - y);
+    let y = self.memory[self.sp];
+    self.memory[self.sp] = 0;
+    self.sp -= 1;
+    let x = self.memory[self.sp];
+    let result = x - y;
+    self.memory[self.sp] = result;
   }
 
   // arithmetic negation (-y)
   fn neg(&mut self) {
-    let y = self.data.pop().unwrap();
-    self.data.push(-y);
+    let y = self.memory[self.sp];
+    self.memory[self.sp] = -y;
   }
 
   // equality (x == y)
   fn eq(&mut self) {
-    todo!()
+    let y = self.memory[self.sp];
+    self.memory[self.sp] = 0;
+    self.sp -= 1;
+    let x = self.memory[self.sp];
+    if x == y {
+      self.memory[self.sp] = 1;
+    }
+    self.memory[self.sp] = 0;
+  
   }
 
   // greater than (x > y)
   fn gt(&mut self) {
-    todo!()
+    let y = self.memory[self.sp];
+    self.memory[self.sp] = 0;
+    self.sp -= 1;
+    let x = self.memory[self.sp];
+    if x > y {
+
+      self.memory[self.sp] = 1;
+    }
+    self.memory[self.sp] = 0;
   }
 
   // less than (x < y)
   fn lt(&mut self) {
-    todo!()
+    let y = self.memory[self.sp];
+    self.memory[self.sp] = 0;
+    self.sp -= 1;
+    let x = self.memory[self.sp];
+    if x < y {
+      self.memory[self.sp] = 1;
+    }
+    self.memory[self.sp] = 0;
   }
 
   // bit-wise And (x And y)
   fn and(&mut self) {
-    todo!()
+    let y = self.memory[self.sp];
+    self.memory[self.sp] = 0;
+    self.sp -= 1;
+    let x = self.memory[self.sp];
+    let result = x & y;
+    self.memory[self.sp] = result
   }
 
   // bit-wise Or (x Or y)
   fn or(&mut self) {
-    todo!()
+    let y = self.memory[self.sp];
+    self.memory[self.sp] = 0;
+    self.sp -= 1;
+    let x = self.memory[self.sp];
+    let result = x | y;
+    self.memory[self.sp] = result
   }
 
   // bit-wise Not (Not y)
   fn not(&mut self) {
-    todo!()
+    let y = self.memory[self.sp];
+    self.memory[self.sp] = !y;
   }
 }
 
@@ -101,59 +174,26 @@ mod tests {
 
   #[test]
   fn push_value_from_segment_test_in_the_stack() {
-    let mut stack = Stack::new();
-    let mut test_seg = Segment::new("test".to_string());
-    test_seg.data.push(10);
-    stack.push(&test_seg, 0);
-
-    assert_eq!(&stack.data, &test_seg.data);
+    todo!()
   }
 
   #[test]
   fn pop_stack_to_push_it_in_the_test_segment() {
-    let mut stack = Stack::new();
-    let mut test_seg = Segment::new("test".to_string());
-    test_seg.data.push(10);
-    stack.push(&test_seg, 0);
-    stack.pop(&mut test_seg, 1);
-
-    let test_vec = vec![10,10];
-    assert_eq!(test_vec, test_seg.data)
+    todo!()
   }
 
   #[test]
   fn add_x2_and_y7_from_the_stack() {
-    let mut stack = Stack::new();
-    stack.data.push(2);
-    stack.data.push(7);
-
-    stack.add();
-
-    let test_stack = vec![9];
-    assert_eq!(stack.data, test_stack);
+    todo!()
   }
 
   #[test]
   fn sub_x2_and_y7_from_the_stack() {
-    let mut stack = Stack::new();
-    stack.data.push(2);
-    stack.data.push(7);
-
-    stack.sub();
-
-    let test_stack = vec![-5];
-    assert_eq!(stack.data, test_stack);
+    todo!()
   }
 
   #[test]
   fn neg_value_from_the_stack() {
-    let mut stack = Stack::new();
-    stack.data.push(2);
-    stack.data.push(7);
-
-    stack.neg();
-
-    let test_stack = vec![2, -7];
-    assert_eq!(stack.data, test_stack);
+    todo!()
   }
 }
