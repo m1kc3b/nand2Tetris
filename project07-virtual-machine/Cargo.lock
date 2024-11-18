@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "project07"
+name = "project07-virtual-machine"
 version = "0.1.0"
