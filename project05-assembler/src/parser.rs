@@ -31,21 +31,32 @@ impl Parser {
         }
     }
 
-      fn instruction_type(&self) -> InstructionType {
+    fn instruction_type(&self) -> InstructionType {
         let lines: Vec<&str> = self.input.split("\n").collect();
-          let current_instruction = lines[self.index].trim();
-          if current_instruction.starts_with("@") {
+        let current_instruction = lines[self.index].trim();
+        if current_instruction.starts_with("@") {
             return InstructionType::AInstruction;
-          } else if current_instruction.starts_with("(") {
+        } else if current_instruction.starts_with("(") {
             return InstructionType::LInstruction;
-          } else {
+        } else {
             return InstructionType::CInstruction;
-          }
-      }
+        }
+    }
 
-    //   fn symbol(&self) -> String {
-    //       todo!()
-    //   }
+    fn symbol(&self) -> Option<&str> {
+        let lines: Vec<&str> = self.input.split("\n").collect();
+        let current_instruction = lines[self.index].trim();
+
+        match self.instruction_type() {
+            InstructionType::AInstruction => {
+                Some(&current_instruction[1..])
+            }
+            InstructionType::LInstruction => {
+                Some(&current_instruction[1..current_instruction.len() -1])
+            }
+            _ => None,
+        }
+    }
 
     //   fn dest(&self) -> String {
     //       todo!()
@@ -132,5 +143,34 @@ mod tests {
         parser.advance();
         parser.advance();
         assert_eq!(parser.instruction_type(), InstructionType::CInstruction)
+    }
+
+    #[test]
+    fn should_return_the_label_without_parenthesis_if_the_current_is_a_l_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.symbol(), Some("LOOP"))
+    }
+
+    #[test]
+    fn should_return_the_label_without_arobase_if_the_current_is_an_a_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        assert_eq!(parser.symbol(), Some("i"))
+    }
+
+    #[test]
+    fn should_return_none_if_the_current_is_a_c_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.symbol(), None)
     }
 }
