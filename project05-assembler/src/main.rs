@@ -1,6 +1,7 @@
-use project05_assembler::parser::Parser;
 use std::env;
 use std::process;
+
+use project05_assembler::hack_assembler::HackAssembler;
 
 fn main() {
     // $ HackAssembler Add.asm
@@ -12,7 +13,7 @@ fn main() {
     }
     // Filename
     let filename = &args[1];
-    // Create a new Parser
-    let parser = Parser::new(filename);
-    println!("{:#?}", parser.input)
+    // Create a HackAssembler
+    let assembler = HackAssembler::new(filename);
+    // assembler.execute();
 }
