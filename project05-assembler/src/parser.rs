@@ -79,9 +79,37 @@ impl Parser {
         None
       }
 
-    //   fn comp(&self) -> String {
-    //       todo!()
-    //   }
+      fn comp(&self) -> Option<&str> {
+        let lines: Vec<&str> = self.input.split("\n").collect();
+        let current_instruction = lines[self.index].trim();
+
+        if let InstructionType::CInstruction = self.instruction_type() {
+            let instruction = &current_instruction[2..];
+
+            match instruction {
+                "0" => return Some("101010"),
+                "1" => return Some("111111"),
+                "-1" => return Some("111010"),
+                "D" => return Some("001100"),
+                "A"|"M" => return Some("110000"),
+                "!D" => return Some("001101"),
+                "!A"|"!M" => return Some("110001"),
+                "-D" => return Some("001111"),
+                "-A"|"-M" => return Some("110011"),
+                "D+1" => return Some("011111"),
+                "A+1"|"M+1" => return Some("110111"),
+                "D-1" => return Some("001110"),
+                "A-1"|"M-1" => return Some("110010"),
+                "D+A"|"D+M" => return Some("000010"),
+                "D-A"|"D-M" => return Some("010011"),
+                "A-D"|"M-D" => return Some("000111"),
+                "D&A"|"D&M" => return Some("000000"),
+                "D|A"|"D|M" => return Some("010101"),
+                _ => return None
+            }
+        }
+        None
+      }
 
     //   fn jump(&self) -> String {
     //       todo!()
@@ -212,5 +240,23 @@ mod tests {
         parser.advance();
         parser.advance();
         assert_eq!(parser.dest(), Some("010"))
+    }
+
+    #[test]
+    fn should_return_111111_the_comp_part_if_the_current_is_a_c_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.comp(), Some("111111"))
+    }
+
+    #[test]
+    fn should_return_111111_the_dest_part_if_the_current_is_a_c_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.comp(), Some("111111"))
     }
 }
