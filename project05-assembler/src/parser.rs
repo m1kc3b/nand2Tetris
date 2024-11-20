@@ -111,9 +111,26 @@ impl Parser {
         None
       }
 
-    //   fn jump(&self) -> String {
-    //       todo!()
-    //   }
+      fn jump(&self) -> Option<&str> {
+        let lines: Vec<&str> = self.input.split("\n").collect();
+        let current_instruction = lines[self.index].trim();
+
+        if let InstructionType::CInstruction = self.instruction_type() {
+            let instruction = &current_instruction[2..];
+
+            match instruction {
+                "JGT" => return Some("001"),
+                "JEQ" => return Some("010"),
+                "JGE" => return Some("011"),
+                "JLT" => return Some("100"),
+                "JNE" => return Some("101"),
+                "JLE" => return Some("110"),
+                "JMP" => return Some("111"),
+                _ => return Some("000"),
+            }
+        }
+        None
+      }
 }
 
 #[cfg(test)]
@@ -258,5 +275,49 @@ mod tests {
         parser.advance();
         parser.advance();
         assert_eq!(parser.comp(), Some("111111"))
+    }
+
+    #[test]
+    fn should_return_001_the_jump_if_the_current_is_a_c_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.jump(), Some("001"))
+    }
+
+    #[test]
+    fn should_return_111_the_jump_if_the_current_is_a_c_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.jump(), Some("111"))
     }
 }
