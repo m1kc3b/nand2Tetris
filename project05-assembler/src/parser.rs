@@ -90,6 +90,9 @@ mod tests {
         parser.advance();
         parser.advance();
         parser.advance();
-        assert_eq!(parser.index, 5)
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.index, 9)
     }
 }
