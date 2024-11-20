@@ -1,3 +1,5 @@
+use std::fs::read_to_string;
+
 #[derive(Debug, PartialEq, Eq)]
 enum InstructionType {
     AInstruction,
@@ -8,15 +10,19 @@ enum InstructionType {
 #[derive(Debug)]
 pub struct Parser {
     pub input: String,
-    pub index: usize,
+    index: usize,
 }
 
 impl Parser {
-    pub fn new(input: String) -> Self {
-        Self { input, index: 0 }
+    pub fn new(filename: &str) -> Self {
+        let path = format!("asm-files/{}", &filename);
+        if let Ok(text) = read_to_string(path) {
+            return Self { input: text, index: 0 };
+        }
+        Self { input: String::new(), index: 0 }
     }
 
-    pub fn has_more_lines(&self) -> bool {
+    fn has_more_lines(&self) -> bool {
         let lines: Vec<&str> = self.input.split("\n").collect();
         lines.len() > self.index
     }
@@ -143,8 +149,7 @@ mod tests {
 
     #[test]
     fn init_new_parser_with_test_file() {
-        let input = read_to_string("asm-files/test.asm").unwrap();
-        let parser = Parser::new(input);
+        let parser = Parser::new("test.asm");
         assert_eq!(
             parser.input,
             "// Computes R1=1+...+R0\n// i = 1\n@i".to_string()
@@ -153,23 +158,20 @@ mod tests {
 
     #[test]
     fn check_if_there_is_more_lines() {
-        let input = read_to_string("asm-files/test.asm").unwrap();
-        let parser = Parser::new(input);
+        let parser = Parser::new("test.asm");
         assert_eq!(parser.has_more_lines(), true)
     }
 
     #[test]
     fn check_if_whitespace_and_comments_are_skipped() {
-        let input = read_to_string("asm-files/test.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("test.asm");
         parser.advance();
         assert_eq!(parser.index, 2)
     }
 
     #[test]
     fn check_if_whitespace_and_comments_are_skipped_when_advance_called_more_times() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         parser.advance();
@@ -181,16 +183,14 @@ mod tests {
 
     #[test]
     fn the_instruction_type_should_be_a_instruction() {
-        let input = read_to_string("asm-files/test.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("test.asm");
         parser.advance();
         assert_eq!(parser.instruction_type(), InstructionType::AInstruction)
     }
 
     #[test]
     fn the_instruction_type_should_be_l_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         parser.advance();
@@ -201,8 +201,7 @@ mod tests {
 
     #[test]
     fn the_instruction_type_should_be_c_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         assert_eq!(parser.instruction_type(), InstructionType::CInstruction)
@@ -210,8 +209,7 @@ mod tests {
 
     #[test]
     fn should_return_the_label_without_parenthesis_if_the_current_is_a_l_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         parser.advance();
@@ -222,16 +220,14 @@ mod tests {
 
     #[test]
     fn should_return_the_label_without_arobase_if_the_current_is_an_a_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         assert_eq!(parser.symbol(), Some("i"))
     }
 
     #[test]
     fn should_return_none_if_the_current_is_a_c_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         assert_eq!(parser.symbol(), None)
@@ -239,8 +235,7 @@ mod tests {
 
     #[test]
     fn should_return_001_the_dest_part_if_the_current_is_a_c_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         assert_eq!(parser.dest(), Some("001"))
@@ -248,8 +243,7 @@ mod tests {
 
     #[test]
     fn should_return_010_the_dest_part_if_the_current_is_a_c_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         parser.advance();
@@ -262,8 +256,7 @@ mod tests {
 
     #[test]
     fn should_return_111111_the_comp_part_if_the_current_is_a_c_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         assert_eq!(parser.comp(), Some("111111"))
@@ -271,8 +264,7 @@ mod tests {
 
     #[test]
     fn should_return_111111_the_dest_part_if_the_current_is_a_c_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         assert_eq!(parser.comp(), Some("111111"))
@@ -280,8 +272,7 @@ mod tests {
 
     #[test]
     fn should_return_001_the_jump_if_the_current_is_a_c_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         parser.advance();
@@ -298,8 +289,7 @@ mod tests {
 
     #[test]
     fn should_return_111_the_jump_if_the_current_is_a_c_instruction() {
-        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
-        let mut parser = Parser::new(input);
+        let mut parser = Parser::new("Sum1ToN.asm");
         parser.advance();
         parser.advance();
         parser.advance();
