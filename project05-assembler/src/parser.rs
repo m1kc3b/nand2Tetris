@@ -8,16 +8,18 @@ enum InstructionType {
 
 pub struct Parser {
   pub input: String,
+  pub index: usize,
 }
 
 impl Parser {
   pub fn new(input: String) -> Self {
-      Self { input }
+      Self { input, index: 0 }
   }
 
-//   fn has_more_lines(&self) -> bool {
-//       todo!()
-//   }
+  pub fn has_more_lines(&self) -> bool {
+    let lines: Vec<&str> = self.input.split("\n").collect();
+    lines.len() > self.index
+  }
 
 //   fn advance(&self) {
 //       todo!()
@@ -57,6 +59,13 @@ mod tests {
     fn init_new_parser_with_test_file() {
         let input = read_to_string("asm-files/test.asm").unwrap();
         let parser = Parser::new(input);
-        assert_eq!(parser.input, "// Computes R1=1+...+R0".to_string());
+        assert_eq!(parser.input, "// Computes R1=1+...+R0\n// i = 1\n@i".to_string());
+    }
+
+    #[test]
+    fn check_if_there_is_more_lines() {
+        let input = read_to_string("asm-files/test.asm").unwrap();
+        let parser = Parser::new(input);
+        assert_eq!(parser.has_more_lines(), true)
     }
 }
