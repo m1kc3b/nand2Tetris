@@ -5,6 +5,7 @@ enum InstructionType {
     LInstruction,
 }
 
+#[derive(Debug)]
 pub struct Parser {
     pub input: String,
     pub index: usize,
@@ -24,8 +25,8 @@ impl Parser {
         let lines: Vec<&str> = self.input.split("\n").collect();
         if self.has_more_lines() {
             self.index += 1;
-            // skip comments and whitespaces
-            if lines[self.index].trim().starts_with("//") {
+            // skip comments, whitespaces and empty lines
+            if lines[self.index].trim().starts_with("//") | lines[self.index].is_empty() {
                 self.index += 1;
             }
         }
