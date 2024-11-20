@@ -1,21 +1,23 @@
-#[derive(Debug, PartialEq, Eq)]
-struct Symbol {
-  name: String,
-  address: usize
-}
+use std::collections::HashMap;
+
+
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct SymbolTable {
-  entries: Vec<Symbol>
+  entries: HashMap<String, usize>
 }
 
 impl SymbolTable {
   pub fn new() -> Self {
-    Self { entries: Vec::new() }
+    Self { entries: HashMap::new() }
   }
 
-  pub fn add_entry(&mut self, name: String, address: usize) {
-    self.entries.push(Symbol { name, address });
+  pub fn add_entry(&mut self, symbol: &str, address: usize) {
+    self.entries.insert(symbol.to_string(), address);
+  }
+
+  pub fn contains(&self, given_symbol: &str) -> bool {
+    self.entries.contains_key(given_symbol)
   }
 }
 
@@ -31,13 +33,13 @@ mod tests {
   #[test]
   fn should_create_and_symbol_table() {
     let symbol_table = SymbolTable::new();
-    assert_eq!(symbol_table, SymbolTable { entries: Vec::new()})
+    assert_eq!(symbol_table, SymbolTable { entries: HashMap::new()})
   }
 
   #[test]
-  fn should_add_new_entry_to_the_symbol_table() {
+  fn should_return_true_if_the_symboltable_contains_the_given_symbol() {
     let mut symbol_table = SymbolTable::new();
-    symbol_table.add_entry("test".to_string(), 1);
-    assert_eq!(symbol_table, SymbolTable { entries: vec![Symbol { name: "test".to_string(), address: 1 }]})
+    symbol_table.add_entry("test", 1);
+    assert_eq!(symbol_table.contains("test"), true)
   }
 }
