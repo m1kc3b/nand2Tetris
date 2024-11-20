@@ -58,9 +58,26 @@ impl Parser {
         }
     }
 
-    //   fn dest(&self) -> String {
-    //       todo!()
-    //   }
+      fn dest(&self) -> Option<&str> {
+        let lines: Vec<&str> = self.input.split("\n").collect();
+        let current_instruction = lines[self.index].trim();
+
+        if let InstructionType::CInstruction = self.instruction_type() {
+            let instruction = &current_instruction[..1];
+
+            match instruction {
+                "M" => return Some("001"),
+                "D" => return Some("010"),
+                "DM" => return Some("011"),
+                "A" => return Some("100"),
+                "AM" => return Some("101"),
+                "AD" => return Some("110"),
+                "ADM" => return Some("111"),
+                _ => return Some("000"),
+            }
+        }
+        None
+      }
 
     //   fn comp(&self) -> String {
     //       todo!()
@@ -172,5 +189,28 @@ mod tests {
         parser.advance();
         parser.advance();
         assert_eq!(parser.symbol(), None)
+    }
+
+    #[test]
+    fn should_return_001_the_dest_part_if_the_current_is_a_c_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.dest(), Some("001"))
+    }
+
+    #[test]
+    fn should_return_010_the_dest_part_if_the_current_is_a_c_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.dest(), Some("010"))
     }
 }
