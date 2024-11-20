@@ -23,8 +23,8 @@ impl Parser {
         let lines: Vec<&str> = self.input.split("\n").collect();
         if self.has_more_lines() {
             self.index += 1;
-            // skip whitespace and comments
-            if lines[self.index].starts_with("//") | lines[self.index].starts_with(" ") {
+            // skip comments and whitespaces
+            if lines[self.index].trim().starts_with("//") {
                 self.index += 1;
             }
         }
@@ -81,5 +81,15 @@ mod tests {
         let mut parser = Parser::new(input);
         parser.advance();
         assert_eq!(parser.index, 2)
+    }
+
+    #[test]
+    fn check_if_whitespace_and_comments_are_skipped_when_advance_called_more_times() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.index, 5)
     }
 }
