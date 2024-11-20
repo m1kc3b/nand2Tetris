@@ -1,8 +1,9 @@
-// enum InstructionType {
-//     AInstruction,
-//     CInstruction,
-//     LInstruction,
-// }
+#[derive(Debug, PartialEq, Eq)]
+enum InstructionType {
+    AInstruction,
+    CInstruction,
+    LInstruction,
+}
 
 pub struct Parser {
     pub input: String,
@@ -30,9 +31,17 @@ impl Parser {
         }
     }
 
-    //   fn instruction_type(&self) -> InstructionType {
-    //       todo!()
-    //   }
+      fn instruction_type(&self) -> InstructionType {
+        let lines: Vec<&str> = self.input.split("\n").collect();
+          let current_instruction = lines[self.index].trim();
+          if current_instruction.starts_with("@") {
+            return InstructionType::AInstruction;
+          } else if current_instruction.starts_with("(") {
+            return InstructionType::LInstruction;
+          } else {
+            return InstructionType::CInstruction;
+          }
+      }
 
     //   fn symbol(&self) -> String {
     //       todo!()
@@ -94,5 +103,34 @@ mod tests {
         parser.advance();
         parser.advance();
         assert_eq!(parser.index, 9)
+    }
+
+    #[test]
+    fn the_instruction_type_should_be_a_instruction() {
+        let input = read_to_string("asm-files/test.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        assert_eq!(parser.instruction_type(), InstructionType::AInstruction)
+    }
+
+    #[test]
+    fn the_instruction_type_should_be_l_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.instruction_type(), InstructionType::LInstruction)
+    }
+
+    #[test]
+    fn the_instruction_type_should_be_c_instruction() {
+        let input = read_to_string("asm-files/Sum1ToN.asm").unwrap();
+        let mut parser = Parser::new(input);
+        parser.advance();
+        parser.advance();
+        assert_eq!(parser.instruction_type(), InstructionType::CInstruction)
     }
 }
