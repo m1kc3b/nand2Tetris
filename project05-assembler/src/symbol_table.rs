@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-
-
 #[derive(Debug, PartialEq, Eq)]
 pub struct SymbolTable {
   entries: HashMap<String, usize>
@@ -19,12 +17,14 @@ impl SymbolTable {
   pub fn contains(&self, given_symbol: &str) -> bool {
     self.entries.contains_key(given_symbol)
   }
+
+  pub fn get_address(&self, given_symbol: &str) -> Option<usize> {
+    if let Some((_, &v)) = self.entries.get_key_value(given_symbol) {
+      return Some(v)
+    }
+    None
+  }
 }
-
-
-
-
-
 
 #[cfg(test)]
 mod tests {
@@ -41,5 +41,12 @@ mod tests {
     let mut symbol_table = SymbolTable::new();
     symbol_table.add_entry("test", 1);
     assert_eq!(symbol_table.contains("test"), true)
+  }
+
+  #[test] 
+  fn should_return_the_address_1_of_the_given_symbol() {
+    let mut symbol_table = SymbolTable::new();
+    symbol_table.add_entry("test", 1);
+    assert_eq!(symbol_table.get_address("test"), Some(1))
   }
 }
