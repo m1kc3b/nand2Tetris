@@ -13,7 +13,7 @@ pub struct HackAssembler<'a> {
 }
 
 impl<'a> HackAssembler<'a> {
-  pub fn new(filename: &str) -> Self {
+  pub fn new(filename: &'a str) -> Self {
     let parser = Parser::new(filename);
     let symbol_table = SymbolTable::new();
     let output_file = File::create(filename).unwrap();
@@ -21,7 +21,23 @@ impl<'a> HackAssembler<'a> {
   }
 
   pub fn execute(&self) {
+    // First pass: 
+    // read each line and keeping track of line number for A_instruction and C_instruction only.
+    // add label to symbol table (symbol name, line number)
+    while self.parser.has_more_lines() {
+      // get the line
+      // check instruction_type
+      // add label to symbol_table
+    }
 
+    // Second pass:
+    // read each line and parse each one.
+    while self.parser.has_more_lines() {
+      // get the line
+      // check instruction_type
+      // translate it
+      // insert into output_file
+    }
   }
 }
 
