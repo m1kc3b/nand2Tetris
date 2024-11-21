@@ -12,22 +12,12 @@ enum InstructionType {
 
 #[derive(Debug)]
 pub struct Parser {
-    // pub input: String,
-    // pub index: usize,
     lines: Lines<BufReader<File>>,
     line_count: usize,
 }
 
 impl Parser {
     pub fn new(filename: &str) -> Result<Self> {
-        // TODO: return Result<Self, Error>
-        // let path = format!("asm-files/{}", &filename);
-        // if let Ok(text) = read_to_string(path) {
-        // return Self { input: text, index: 0 };
-        // }
-        // Self { input: String::new(), index: 0 }
-
-        // INIT WITH LINES
         let path = format!("asm-files/{}", &filename);
         let file = File::open(path)?;
         let reader = BufReader::new(file);
@@ -44,22 +34,16 @@ impl Parser {
     // }
 
     pub fn advance(&mut self) -> Option<Result<String>> {
-        // let lines: Vec<&str> = self.input.split("\n").collect();
-        // if self.has_more_lines() {
-        //     self.index += 1;
-        //     // skip comments, whitespaces and empty lines
-        //     if lines[self.index].trim().starts_with("//") | lines[self.index].is_empty() {
-        //         self.index += 1;
-        //     }
-        // }
-
         while let Some(line) = self.lines.next() {
             match line {
                 Ok(content) => {
                     let trimmed = content.trim();
                     if !trimmed.is_empty() & !trimmed.starts_with("//") {
                         self.line_count += 1;
-                        return Some(Ok(content));
+                        if trimmed.starts_with("(") {
+                            self.line_count += 1;
+                        }
+                        return Some(Ok(trimmed.to_string()));
                     }
                 }
                 Err(e) => return Some(Err(e)),
@@ -72,16 +56,6 @@ impl Parser {
 }
 
 fn instruction_type(line: &str) -> Option<InstructionType> {
-    // let lines: Vec<&str> = self.input.split("\n").collect();
-    // let current_instruction = lines[self.index].trim();
-    // if current_instruction.starts_with("@") {
-    //     return InstructionType::AInstruction;
-    // } else if current_instruction.starts_with("(") {
-    //     return InstructionType::LInstruction;
-    // } else {
-    //     return InstructionType::CInstruction;
-    // }
-
     if line.starts_with("@") {
         return Some(InstructionType::AInstruction);
     } else if line.starts_with("(") {
@@ -93,19 +67,6 @@ fn instruction_type(line: &str) -> Option<InstructionType> {
 }
 
 fn symbol(line: &str) -> Option<&str> {
-    // let lines: Vec<&str> = self.input.split("\n").collect();
-    // let current_instruction = lines[self.index].trim();
-
-    // match self.instruction_type() {
-    //     InstructionType::AInstruction => {
-    //         Some(&current_instruction[1..])
-    //     }
-    //     InstructionType::LInstruction => {
-    //         Some(&current_instruction[1..current_instruction.len() -1])
-    //     }
-    //     _ => None,
-    // }
-
     let instruction_type = instruction_type(line);
     match instruction_type {
         Some(InstructionType::AInstruction) => Some(&line[1..]),
@@ -115,25 +76,6 @@ fn symbol(line: &str) -> Option<&str> {
 }
 
 fn dest(line: &str) -> Option<&str> {
-    // let lines: Vec<&str> = self.input.split("\n").collect();
-    // let current_instruction = lines[self.index].trim();
-
-    // if let InstructionType::CInstruction = self.instruction_type() {
-    //     let instruction = &current_instruction[..1];
-
-    //     match instruction {
-    //         "M" => return Some("001"),
-    //         "D" => return Some("010"),
-    //         "DM" => return Some("011"),
-    //         "A" => return Some("100"),
-    //         "AM" => return Some("101"),
-    //         "AD" => return Some("110"),
-    //         "ADM" => return Some("111"),
-    //         _ => return Some("000"),
-    //     }
-    // }
-    // None
-
     let instruction_type = instruction_type(line);
     if let Some(InstructionType::CInstruction) = instruction_type {
         let instruction = &line[..1];
@@ -152,35 +94,6 @@ fn dest(line: &str) -> Option<&str> {
 }
 
 fn comp(line: &str) -> Option<&str> {
-    // let lines: Vec<&str> = self.input.split("\n").collect();
-    // let current_instruction = lines[self.index].trim();
-
-    // if let InstructionType::CInstruction = self.instruction_type() {
-    //     let instruction = &current_instruction[2..];
-
-    //     match instruction {
-    //         "0" => return Some("101010"),
-    //         "1" => return Some("111111"),
-    //         "-1" => return Some("111010"),
-    //         "D" => return Some("001100"),
-    //         "A"|"M" => return Some("110000"),
-    //         "!D" => return Some("001101"),
-    //         "!A"|"!M" => return Some("110001"),
-    //         "-D" => return Some("001111"),
-    //         "-A"|"-M" => return Some("110011"),
-    //         "D+1" => return Some("011111"),
-    //         "A+1"|"M+1" => return Some("110111"),
-    //         "D-1" => return Some("001110"),
-    //         "A-1"|"M-1" => return Some("110010"),
-    //         "D+A"|"D+M" => return Some("000010"),
-    //         "D-A"|"D-M" => return Some("010011"),
-    //         "A-D"|"M-D" => return Some("000111"),
-    //         "D&A"|"D&M" => return Some("000000"),
-    //         "D|A"|"D|M" => return Some("010101"),
-    //         _ => return None
-    //     }
-    // }
-    // None
     let instruction_type = instruction_type(line);
     if let Some(InstructionType::CInstruction) = instruction_type {
         let instruction = &line[2..];
@@ -210,24 +123,6 @@ fn comp(line: &str) -> Option<&str> {
 }
 
 fn jump(line: &str) -> Option<&str> {
-    //     // let lines: Vec<&str> = self.input.split("\n").collect();
-    //     // let current_instruction = lines[self.index].trim();
-
-    //     if let InstructionType::CInstruction = self.instruction_type() {
-    //         let instruction = &current_instruction[2..];
-
-    //         match instruction {
-    //             "JGT" => return Some("001"),
-    //             "JEQ" => return Some("010"),
-    //             "JGE" => return Some("011"),
-    //             "JLT" => return Some("100"),
-    //             "JNE" => return Some("101"),
-    //             "JLE" => return Some("110"),
-    //             "JMP" => return Some("111"),
-    //             _ => return Some("000"),
-    //         }
-    //     }
-    //     None
     let instruction_type = instruction_type(line);
     if let Some(InstructionType::CInstruction) = instruction_type {
         let instruction: Vec<&str> = line[2..].split(";").collect();
@@ -270,6 +165,41 @@ mod tests {
         if let Ok(text) = line {
             assert_eq!(text, "D=A".to_string());
             assert_eq!(parser.line_count, 2);
+        }
+    }
+
+    #[test]
+    fn check_it_works_when_advance_is_called_eleventh() {
+        let mut parser = Parser::new("Sum1ToN.asm").unwrap();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        let line = parser.advance().unwrap();
+
+        if let Ok(text) = line {
+            assert_eq!(text, "D;JGT".to_string());
+        }
+    }
+
+    #[test]
+    fn check_it_works_for_label() {
+        let mut parser = Parser::new("Sum1ToN.asm").unwrap();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        parser.advance();
+        let line = parser.advance().unwrap();
+
+        if let Ok(text) = line {
+            assert_eq!(text, "(LOOP)".to_string());
+            assert_eq!(parser.line_count, 6);
         }
     }
 
