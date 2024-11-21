@@ -1,5 +1,5 @@
 use std::{
-    fs::{read_to_string, File},
+    fs::File,
     io::{BufRead, BufReader, Lines, Result},
 };
 
@@ -53,92 +53,91 @@ impl Parser {
     }
 
     
-}
-
-fn instruction_type(line: &str) -> Option<InstructionType> {
-    if line.starts_with("@") {
-        return Some(InstructionType::AInstruction);
-    } else if line.starts_with("(") {
-        return Some(InstructionType::LInstruction);
-    } else {
-        return Some(InstructionType::CInstruction);
-    }
-    None
-}
-
-fn symbol(line: &str) -> Option<&str> {
-    let instruction_type = instruction_type(line);
-    match instruction_type {
-        Some(InstructionType::AInstruction) => Some(&line[1..]),
-        Some(InstructionType::LInstruction) => Some(&line[1..line.len() - 1]),
-        _ => None,
-    }
-}
-
-fn dest(line: &str) -> Option<&str> {
-    let instruction_type = instruction_type(line);
-    if let Some(InstructionType::CInstruction) = instruction_type {
-        let instruction = &line[..1];
-        match instruction {
-            "M" => return Some("001"),
-            "D" => return Some("010"),
-            "DM" => return Some("011"),
-            "A" => return Some("100"),
-            "AM" => return Some("101"),
-            "AD" => return Some("110"),
-            "ADM" => return Some("111"),
-            _ => return Some("000"),
+    pub fn instruction_type(&self, line: &str) -> Option<InstructionType> {
+        if line.starts_with("@") {
+            return Some(InstructionType::AInstruction);
+        } else if line.starts_with("(") {
+            return Some(InstructionType::LInstruction);
+        } else {
+            return Some(InstructionType::CInstruction);
         }
     }
-    None
-}
-
-fn comp(line: &str) -> Option<&str> {
-    let instruction_type = instruction_type(line);
-    if let Some(InstructionType::CInstruction) = instruction_type {
-        let instruction = &line[2..];
-        match instruction {
-            "0" => return Some("101010"),
-            "1" => return Some("111111"),
-            "-1" => return Some("111010"),
-            "D" => return Some("001100"),
-            "A" | "M" => return Some("110000"),
-            "!D" => return Some("001101"),
-            "!A" | "!M" => return Some("110001"),
-            "-D" => return Some("001111"),
-            "-A" | "-M" => return Some("110011"),
-            "D+1" => return Some("011111"),
-            "A+1" | "M+1" => return Some("110111"),
-            "D-1" => return Some("001110"),
-            "A-1" | "M-1" => return Some("110010"),
-            "D+A" | "D+M" => return Some("000010"),
-            "D-A" | "D-M" => return Some("010011"),
-            "A-D" | "M-D" => return Some("000111"),
-            "D&A" | "D&M" => return Some("000000"),
-            "D|A" | "D|M" => return Some("010101"),
-            _ => return None,
+    
+    pub fn symbol<'a>(&self, line: &'a str) -> Option<&'a str> {
+        let instruction_type = self.instruction_type(line);
+        match instruction_type {
+            Some(InstructionType::AInstruction) => Some(&line[1..]),
+            Some(InstructionType::LInstruction) => Some(&line[1..line.len() - 1]),
+            _ => None,
         }
     }
-    None
+    
+    pub fn dest(&self, line: &str) -> Option<&str> {
+        let instruction_type = self.instruction_type(line);
+        if let Some(InstructionType::CInstruction) = instruction_type {
+            let instruction = &line[..1];
+            match instruction {
+                "M" => return Some("001"),
+                "D" => return Some("010"),
+                "DM" => return Some("011"),
+                "A" => return Some("100"),
+                "AM" => return Some("101"),
+                "AD" => return Some("110"),
+                "ADM" => return Some("111"),
+                _ => return Some("000"),
+            }
+        }
+        None
+    }
+    
+    pub fn comp(&self, line: &str) -> Option<&str> {
+        let instruction_type = self.instruction_type(line);
+        if let Some(InstructionType::CInstruction) = instruction_type {
+            let instruction = &line[2..];
+            match instruction {
+                "0" => return Some("101010"),
+                "1" => return Some("111111"),
+                "-1" => return Some("111010"),
+                "D" => return Some("001100"),
+                "A" | "M" => return Some("110000"),
+                "!D" => return Some("001101"),
+                "!A" | "!M" => return Some("110001"),
+                "-D" => return Some("001111"),
+                "-A" | "-M" => return Some("110011"),
+                "D+1" => return Some("011111"),
+                "A+1" | "M+1" => return Some("110111"),
+                "D-1" => return Some("001110"),
+                "A-1" | "M-1" => return Some("110010"),
+                "D+A" | "D+M" => return Some("000010"),
+                "D-A" | "D-M" => return Some("010011"),
+                "A-D" | "M-D" => return Some("000111"),
+                "D&A" | "D&M" => return Some("000000"),
+                "D|A" | "D|M" => return Some("010101"),
+                _ => return None,
+            }
+        }
+        None
+    }
+    
+    pub fn jump(&self, line: &str) -> Option<&str> {
+        let instruction_type = self.instruction_type(line);
+        if let Some(InstructionType::CInstruction) = instruction_type {
+            let instruction: Vec<&str> = line.split(";").collect();
+            match instruction[1] {
+                "JGT" => return Some("001"),
+                "JEQ" => return Some("010"),
+                "JGE" => return Some("011"),
+                "JLT" => return Some("100"),
+                "JNE" => return Some("101"),
+                "JLE" => return Some("110"),
+                "JMP" => return Some("111"),
+                _ => return Some("000"),
+            }
+        }
+        None
+    }
 }
 
-fn jump(line: &str) -> Option<&str> {
-    let instruction_type = instruction_type(line);
-    if let Some(InstructionType::CInstruction) = instruction_type {
-        let instruction: Vec<&str> = line.split(";").collect();
-        match instruction[1] {
-            "JGT" => return Some("001"),
-            "JEQ" => return Some("010"),
-            "JGE" => return Some("011"),
-            "JLT" => return Some("100"),
-            "JNE" => return Some("101"),
-            "JLE" => return Some("110"),
-            "JMP" => return Some("111"),
-            _ => return Some("000"),
-        }
-    }
-    None
-}
 
 #[cfg(test)]
 mod tests {
@@ -209,7 +208,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(symbol(&text), Some("2"))
+            assert_eq!(parser.symbol(&text), Some("2"))
         }
     }
 
@@ -220,7 +219,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(symbol(&text), None)
+            assert_eq!(parser.symbol(&text), None)
         }
     }
 
@@ -234,7 +233,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(symbol(&text), Some("LOOP"))
+            assert_eq!(parser.symbol(&text), Some("LOOP"))
         }
     }
 
@@ -244,7 +243,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(dest(&text), None)
+            assert_eq!(parser.dest(&text), None)
         }
     }
 
@@ -255,7 +254,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(dest(&text), Some("010")) // "D"
+            assert_eq!(parser.dest(&text), Some("010")) // "D"
         }
     }
 
@@ -265,7 +264,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(comp(&text), None)
+            assert_eq!(parser.comp(&text), None)
         }
     }
 
@@ -276,7 +275,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(comp(&text), Some("110000")) // "A"
+            assert_eq!(parser.comp(&text), Some("110000")) // "A"
         }
     }
 
@@ -286,7 +285,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(jump(&text), None)
+            assert_eq!(parser.jump(&text), None)
         }
     }
 
@@ -306,7 +305,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(jump(&text), Some("001")) // "JGT"
+            assert_eq!(parser.jump(&text), Some("001")) // "JGT"
         }
     }
 }
