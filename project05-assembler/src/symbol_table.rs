@@ -1,43 +1,43 @@
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct SymbolTable<'a> {
-  entries: HashMap<&'a str, usize>
+pub struct SymbolTable {
+  entries: HashMap<String, usize>
 }
 
-impl<'a> SymbolTable<'a> {
+impl SymbolTable {
   pub fn new() -> Self {
-    let mut entries = HashMap::new();
-    entries.insert("R0", 0);
-    entries.insert("R1", 1);
-    entries.insert("R2", 2);
-    entries.insert("R3", 3);
-    entries.insert("R4", 4);
-    entries.insert("R5", 5);
-    entries.insert("R6", 6);
-    entries.insert("R7", 7);
-    entries.insert("R8", 8);
-    entries.insert("R9", 9);
-    entries.insert("R10", 10);
-    entries.insert("R11", 11);
-    entries.insert("R12", 12);
-    entries.insert("R13", 13);
-    entries.insert("R14", 14);
-    entries.insert("R15", 15);
-    entries.insert("SP", 0);
-    entries.insert("LCL", 1);
-    entries.insert("ARG", 2);
-    entries.insert("THIS", 3);
-    entries.insert("THAT", 4);
-    entries.insert("SCREEN", 16384);
-    entries.insert("KBD", 24576);
+    let mut entries= HashMap::new();
+    entries.insert("R0".to_string(), 0);
+    entries.insert("R1".to_string(), 1);
+    entries.insert("R2".to_string(), 2);
+    entries.insert("R3".to_string(), 3);
+    entries.insert("R4".to_string(), 4);
+    entries.insert("R5".to_string(), 5);
+    entries.insert("R6".to_string(), 6);
+    entries.insert("R7".to_string(), 7);
+    entries.insert("R8".to_string(), 8);
+    entries.insert("R9".to_string(), 9);
+    entries.insert("R10".to_string(), 10);
+    entries.insert("R11".to_string(), 11);
+    entries.insert("R12".to_string(), 12);
+    entries.insert("R13".to_string(), 13);
+    entries.insert("R14".to_string(), 14);
+    entries.insert("R15".to_string(), 15);
+    entries.insert("SP".to_string(), 0);
+    entries.insert("LCL".to_string(), 1);
+    entries.insert("ARG".to_string(), 2);
+    entries.insert("THIS".to_string(), 3);
+    entries.insert("THAT".to_string(), 4);
+    entries.insert("SCREEN".to_string(), 16384);
+    entries.insert("KBD".to_string(), 24576);
 
     Self { entries }
   }
 
-  pub fn add_entry(&mut self, symbol: &'a str, address: usize) {
-    if !self.entries.contains_key(symbol) {
-      self.entries.insert(&symbol, address);
+  pub fn add_entry(&mut self, symbol: String, address: usize) {
+    if !self.entries.contains_key(symbol.as_str()) {
+      self.entries.insert(symbol, address);
     }
   }
 
