@@ -41,7 +41,7 @@ impl SymbolTable {
     }
   }
 
-  fn contains(&self, given_symbol: &str) -> bool {
+  pub fn contains(&self, given_symbol: &str) -> bool {
     self.entries.contains_key(given_symbol)
   }
 
