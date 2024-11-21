@@ -36,10 +36,12 @@ impl SymbolTable {
   }
 
   pub fn add_entry(&mut self, symbol: String, address: usize) {
-    if !self.entries.contains_key(symbol.as_str()) {
-      self.entries.insert(symbol, address);
-    }
+      self.entries.entry(symbol).or_insert(address);
   }
+
+  pub fn update_entry(&mut self, symbol: String, address: usize) {
+    self.entries.entry(symbol).and_modify(|v| *v = address).or_insert(address);
+}
 
   pub fn contains(&self, given_symbol: &str) -> bool {
     self.entries.contains_key(given_symbol)
