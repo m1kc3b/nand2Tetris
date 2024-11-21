@@ -10,7 +10,7 @@ enum InstructionType {
 #[derive(Debug)]
 pub struct Parser {
     pub input: String,
-    index: usize,
+    pub index: usize,
 }
 
 impl Parser {
@@ -22,12 +22,12 @@ impl Parser {
         Self { input: String::new(), index: 0 }
     }
 
-    fn has_more_lines(&self) -> bool {
+    pub fn has_more_lines(&self) -> bool {
         let lines: Vec<&str> = self.input.split("\n").collect();
         lines.len() > self.index
     }
 
-    fn advance(&mut self) {
+    pub fn advance(&mut self) {
         let lines: Vec<&str> = self.input.split("\n").collect();
         if self.has_more_lines() {
             self.index += 1;
@@ -38,7 +38,7 @@ impl Parser {
         }
     }
 
-    fn instruction_type(&self) -> InstructionType {
+    pub fn instruction_type(&self) -> InstructionType {
         let lines: Vec<&str> = self.input.split("\n").collect();
         let current_instruction = lines[self.index].trim();
         if current_instruction.starts_with("@") {
