@@ -44,9 +44,9 @@ impl Parser {
                     let trimmed = content.trim();
                     if !trimmed.is_empty() & !trimmed.starts_with("//") {
                         self.line_count += 1;
-                        if trimmed.starts_with("(") {
-                            self.line_count += 1;
-                        }
+                        // if trimmed.starts_with("(") {
+                        //     self.line_count += 1;
+                        // }
                         return Some(Ok(content.trim().to_string()));
                     }
                 }
@@ -212,7 +212,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(parser.symbol(&text), Some("2"))
+            assert_eq!(parser.symbol(text), Some("2".to_string()))
         }
     }
 
@@ -223,7 +223,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(parser.symbol(&text), None)
+            assert_eq!(parser.symbol(text), None)
         }
     }
 
@@ -237,7 +237,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(parser.symbol(&text), Some("LOOP"))
+            assert_eq!(parser.symbol(text), Some("LOOP".to_string()))
         }
     }
 
@@ -247,7 +247,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(parser.dest(&text), None)
+            assert_eq!(parser.dest(text), None)
         }
     }
 
@@ -258,7 +258,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(parser.dest(&text), Some("010")) // "D"
+            assert_eq!(parser.dest(text), Some("010")) // "D"
         }
     }
 
@@ -268,7 +268,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(parser.comp(&text), None)
+            assert_eq!(parser.comp(text), None)
         }
     }
 
@@ -279,7 +279,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(parser.comp(&text), Some("110000")) // "A"
+            assert_eq!(parser.comp(text), Some("110000")) // "A"
         }
     }
 
@@ -289,7 +289,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(parser.jump(&text), None)
+            assert_eq!(parser.jump(text), None)
         }
     }
 
@@ -309,7 +309,7 @@ mod tests {
         let line = parser.advance().unwrap();
 
         if let Ok(text) = line {
-            assert_eq!(parser.jump(&text), Some("001")) // "JGT"
+            assert_eq!(parser.jump(text), Some("001")) // "JGT"
         }
     }
 }
