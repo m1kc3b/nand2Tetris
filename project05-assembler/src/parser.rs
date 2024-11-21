@@ -58,7 +58,7 @@ impl Parser {
 
     
     pub fn instruction_type(&self, line: &str) -> Option<InstructionType> {
-        if line.starts_with("@") {
+        if line.starts_with("@") && is_not_uppercase(line) {
             return Some(InstructionType::AInstruction);
         } else if line.starts_with("(") {
             return Some(InstructionType::LInstruction);
@@ -140,6 +140,10 @@ impl Parser {
         }
         None
     }
+}
+
+fn is_not_uppercase(s: &str) -> bool {
+    s.chars().any(|c| c.is_lowercase())
 }
 
 
