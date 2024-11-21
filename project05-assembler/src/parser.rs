@@ -125,7 +125,7 @@ fn comp(line: &str) -> Option<&str> {
 fn jump(line: &str) -> Option<&str> {
     let instruction_type = instruction_type(line);
     if let Some(InstructionType::CInstruction) = instruction_type {
-        let instruction: Vec<&str> = line[2..].split(";").collect();
+        let instruction: Vec<&str> = line.split(";").collect();
         match instruction[1] {
             "JGT" => return Some("001"),
             "JEQ" => return Some("010"),
