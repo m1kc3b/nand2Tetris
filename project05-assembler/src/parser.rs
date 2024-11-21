@@ -56,6 +56,17 @@ impl Parser {
         None
     }
 
+    pub fn reinitialize_lines(&mut self, filename: &str) -> Result<()> {
+        let path = format!("asm-files/{}", &filename);
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+
+        self.lines = reader.lines();
+        self.line_count = 0;
+
+        Ok(())
+    }
+
     
     pub fn instruction_type(&self, line: &str) -> Option<InstructionType> {
         if line.starts_with("@") && is_not_uppercase(line) {
