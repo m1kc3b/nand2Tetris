@@ -4,7 +4,7 @@ use std::{
 };
 
 #[derive(Debug, PartialEq, Eq)]
-enum InstructionType {
+pub enum InstructionType {
     AInstruction,
     CInstruction,
     LInstruction,
@@ -28,6 +28,10 @@ impl Parser {
         })
     }
 
+    pub fn get_line_count(&self) -> Option<usize> {
+        Some(self.line_count)
+    }
+
     // pub fn has_more_lines(&self) -> bool {
     //     let lines: Vec<&str> = self.input.split("\n").collect();
     //     lines.len() > self.index
@@ -43,7 +47,7 @@ impl Parser {
                         if trimmed.starts_with("(") {
                             self.line_count += 1;
                         }
-                        return Some(Ok(trimmed.to_string()));
+                        return Some(Ok(content.trim().to_string()));
                     }
                 }
                 Err(e) => return Some(Err(e)),
@@ -63,17 +67,17 @@ impl Parser {
         }
     }
     
-    pub fn symbol<'a>(&self, line: &'a str) -> Option<&'a str> {
-        let instruction_type = self.instruction_type(line);
+    pub fn symbol(&self, line: String) -> Option<String> {
+        let instruction_type = self.instruction_type(&line);
         match instruction_type {
-            Some(InstructionType::AInstruction) => Some(&line[1..]),
-            Some(InstructionType::LInstruction) => Some(&line[1..line.len() - 1]),
+            Some(InstructionType::AInstruction) => Some(line[1..].to_string()),
+            Some(InstructionType::LInstruction) => Some(line[1..line.len() - 1].to_string()),
             _ => None,
         }
     }
     
-    pub fn dest(&self, line: &str) -> Option<&str> {
-        let instruction_type = self.instruction_type(line);
+    pub fn dest(&self, line: String) -> Option<&str> {
+        let instruction_type = self.instruction_type(&line);
         if let Some(InstructionType::CInstruction) = instruction_type {
             let instruction = &line[..1];
             match instruction {
@@ -90,8 +94,8 @@ impl Parser {
         None
     }
     
-    pub fn comp(&self, line: &str) -> Option<&str> {
-        let instruction_type = self.instruction_type(line);
+    pub fn comp(&self, line: String) -> Option<&str> {
+        let instruction_type = self.instruction_type(&line);
         if let Some(InstructionType::CInstruction) = instruction_type {
             let instruction = &line[2..];
             match instruction {
@@ -119,8 +123,8 @@ impl Parser {
         None
     }
     
-    pub fn jump(&self, line: &str) -> Option<&str> {
-        let instruction_type = self.instruction_type(line);
+    pub fn jump(&self, line: String) -> Option<&str> {
+        let instruction_type = self.instruction_type(&line);
         if let Some(InstructionType::CInstruction) = instruction_type {
             let instruction: Vec<&str> = line.split(";").collect();
             match instruction[1] {
