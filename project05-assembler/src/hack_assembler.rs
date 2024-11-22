@@ -67,9 +67,25 @@ impl HackAssembler {
                                 file.write_all(format!("{:016b}", num).as_bytes())?;
                             }
                           }
-                        Some(InstructionType::CInstruction) => { // TODO !!!!
+                        Some(InstructionType::CInstruction) => {
                             // concatenate dest + comp + jump
+                            // 111 a cccccc ddd jjj
+                            let mut instruction = "111".to_string();
+
+                            if let Some(value) = self.parser.comp(&line) {
+                                instruction.push_str(value);
+                            }
+
+                            if let Some(value) = self.parser.dest(&line) {
+                                instruction.push_str(value);
+                            }
+
+                            if let Some(value) = self.parser.jump(&line) {
+                                instruction.push_str(value);
+                            }
+                            instruction.push_str("\n");
                             // insert in output_file
+                            let _ = file.write_all(instruction.as_bytes());
                         }
                         _ => continue,
                     }
