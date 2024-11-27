@@ -1,6 +1,6 @@
-use crate::code_writer::CodeWriter;
-use crate::parser::Parser;
-use crate::parser::CommandType;
+use crate::__code_writer::CodeWriter;
+use crate::__parser::Parser;
+use crate::__parser::CommandType;
 
 // This is the main program that drives the translation process, using the services of a Parser and a CodeWriter.
 pub fn vmtranslator(arguments: Vec<String>) {
