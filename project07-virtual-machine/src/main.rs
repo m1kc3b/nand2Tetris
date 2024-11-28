@@ -2,7 +2,8 @@ use std::{env, fs::{self, read_to_string}, io, path::{self, Path}};
 
 use parser::Parser;
 mod parser;
-
+mod code_writer;
+mod stack;
 
 fn main() -> Result<(), io::Error> {
     // The program gets the name of the input source file, say Prog (.vm is mandatory), from the command-line argument.
