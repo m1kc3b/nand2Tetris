@@ -4,6 +4,7 @@ use parser::Parser;
 mod parser;
 mod code_writer;
 mod stack;
+mod memory_segment;
 
 fn main() -> Result<(), io::Error> {
     // The program gets the name of the input source file, say Prog (.vm is mandatory), from the command-line argument.
