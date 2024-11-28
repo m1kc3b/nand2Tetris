@@ -37,15 +37,62 @@ impl Stack {
       let _ = self.push(-x);
     }
 
-    // pub fn eq(&mut self) {
-    //   let y = self.pop().unwrap();
-    //   let x = self.pop().unwrap();
-    //   if x == y {
-    //     let _ = self.push(1);
-    //   } else {
-    //     let _ = self.push(0);
-    //   }
-    // }
+    pub fn equal(&mut self) {
+      let y = self.pop().unwrap();
+      let x = self.pop().unwrap();
+      if x == y {
+        let _ = self.push(1);
+      } else {
+        let _ = self.push(0);
+      }
+    }
+
+    pub fn gt(&mut self) {
+      let y = self.pop().unwrap();
+      let x = self.pop().unwrap();
+      if x > y {
+        let _ = self.push(1);
+      } else {
+        let _ = self.push(0);
+      }
+    }
+
+    pub fn lt(&mut self) {
+      let y = self.pop().unwrap();
+      let x = self.pop().unwrap();
+      if x < y {
+        let _ = self.push(1);
+      } else {
+        let _ = self.push(0);
+      }
+    }
+
+    pub fn and(&mut self) {
+      let y = self.pop().unwrap();
+      let x = self.pop().unwrap();
+
+      if x & y != 0 {
+        let _ = self.push(1);
+      } else {
+        let _ = self.push(0);
+      }
+    }
+
+    pub fn or(&mut self) {
+      let y = self.pop().unwrap();
+      let x = self.pop().unwrap();
+
+      if x | y != 0 {
+        let _ = self.push(1);
+      } else {
+        let _ = self.push(0);
+      }
+    }
+
+    pub fn not(&mut self) {
+      let x = self.pop().unwrap();
+      self.push(!x);
+    }
 }
 
 #[cfg(test)]
@@ -106,12 +153,56 @@ mod tests {
   }
 
   #[test]
-  fn should_verify_eq_x_and_y_in_the_stack() {
+  fn should_verify_x_equal_y_in_the_stack() {
     let mut stack = Stack::new();
     let _ = stack.push(16);
     let _ = stack.push(16);
-    let _ = stack;
+    let _ = stack.push(15);
+    let _ = stack.push(15);
+    let _ = stack.equal();
 
     assert_eq!(stack, Stack { memory: vec![16, 16, 1], sp: 3})
+  }
+
+  #[test]
+  fn should_verify_x_greater_than_y_in_the_stack() {
+    let mut stack = Stack::new();
+    let _ = stack.push(16);
+    let _ = stack.push(15);
+    let _ = stack.push(15);
+    let _ = stack.gt();
+
+    assert_eq!(stack, Stack { memory: vec![16, 0], sp: 2})
+  }
+
+  #[test]
+  fn should_verify_x_less_than_y_in_the_stack() {
+    let mut stack = Stack::new();
+    let _ = stack.push(16);
+    let _ = stack.push(15);
+    let _ = stack.push(17);
+    let _ = stack.lt();
+
+    assert_eq!(stack, Stack { memory: vec![16, 1], sp: 2})
+  }
+
+  #[test]
+  fn should_verify_x_bitwise_and_than_y_in_the_stack() {
+    let mut stack = Stack::new();
+    let _ = stack.push(16);
+    let _ = stack.push(15);
+    let _ = stack.push(17);
+    let _ = stack.and();
+
+    assert_eq!(stack, Stack { memory: vec![16, 1], sp: 2})
+  }
+
+  #[test]
+  fn should_not_x_in_the_stack() {
+    let mut stack = Stack::new();
+    let _ = stack.push(5);
+    let _ = stack.not();
+
+    assert_eq!(stack, Stack { memory: vec![-6], sp: 1})
   }
 }
