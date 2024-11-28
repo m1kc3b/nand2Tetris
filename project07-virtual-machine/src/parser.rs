@@ -79,11 +79,11 @@ mod tests {
         let command_3 = "add";
 
         let mut parser_1 = Parser::new(command_1);
-        parser_1.command_type();
+        parser_1.get_command_type();
         let mut parser_2 = Parser::new(command_2);
-        parser_2.command_type();
+        parser_2.get_command_type();
         let mut parser_3 = Parser::new(command_3);
-        parser_3.command_type();
+        parser_3.get_command_type();
 
         assert_eq!(parser_1.command_type, Some(CommandType::C_push));
         assert_eq!(parser_2.command_type, Some(CommandType::C_pop));
@@ -97,11 +97,11 @@ mod tests {
         let command_3 = "add";
 
         let mut parser_1 = Parser::new(command_1);
-        parser_1.arg1();
+        parser_1.get_arg1();
         let mut parser_2 = Parser::new(command_2);
-        parser_2.arg1();
+        parser_2.get_arg1();
         let mut parser_3 = Parser::new(command_3);
-        parser_3.arg1();
+        parser_3.get_arg1();
 
         assert_eq!(parser_1.arg1, Some("constant"));
         assert_eq!(parser_2.arg1, Some("constant"));
@@ -115,11 +115,11 @@ mod tests {
         let command_3 = "add";
 
         let mut parser_1 = Parser::new(command_1);
-        parser_1.arg2();
+        parser_1.get_arg2();
         let mut parser_2 = Parser::new(command_2);
-        parser_2.arg2();
+        parser_2.get_arg2();
         let mut parser_3 = Parser::new(command_3);
-        parser_3.arg2();
+        parser_3.get_arg2();
 
         assert_eq!(parser_1.arg2, Some(10));
         assert_eq!(parser_2.arg2, Some(10));
