@@ -1,6 +1,7 @@
 use std::env;
 use std::process;
 
+// use hack_assembler::assemble;
 
 fn main() {
     // $ HackAssembler Add.asm
