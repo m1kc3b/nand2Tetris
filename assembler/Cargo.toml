@@ -3,4 +3,6 @@ name = "assembler"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[lib]
+name = "hack_assembler"
+path = "src/lib.rs"
