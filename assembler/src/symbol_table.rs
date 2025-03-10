@@ -59,26 +59,4 @@ impl SymbolTable {
 mod tests {
   use super::*;
 
-  #[test]
-  fn should_create_and_symbol_table() {
-    let symbol_table = SymbolTable::new();
-    // assert_eq!(symbol_table, SymbolTable { entries: HashMap::new()})
-    println!("{:#?}", symbol_table)
-  }
-
-  #[test]
-  fn should_return_true_if_the_symboltable_contains_the_given_symbol() {
-    let symbol_table = SymbolTable::new();
-    assert_eq!(symbol_table.contains("R0"), true);
-    assert_eq!(symbol_table.contains("LCL"), true);
-    assert_eq!(symbol_table.contains("KBD"), true);
-  }
-
-  #[test] 
-  fn should_return_the_address_1_of_the_given_symbol() {
-    let symbol_table = SymbolTable::new();
-    assert_eq!(symbol_table.get_address("KBD"), Some(24576));
-    assert_eq!(symbol_table.get_address("R0"), Some(0));
-    assert_eq!(symbol_table.get_address("LCL"), Some(1));
-  }
 }

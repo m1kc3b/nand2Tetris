@@ -1,7 +1,6 @@
 use std::env;
 use std::process;
 
-use project05_assembler::hack_assembler::HackAssembler;
 
 fn main() {
     // $ HackAssembler Add.asm
@@ -14,6 +13,6 @@ fn main() {
     // Filename
     let filename = &args[1];
     // Create a HackAssembler
-    let assembler = HackAssembler::new(filename);
+    // let assembler = HackAssembler::new(filename);
     // assembler.execute();
 }

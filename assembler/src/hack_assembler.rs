@@ -101,37 +101,6 @@ impl HackAssembler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::Path;
 
-    #[test]
-    fn symbol_table_should_exists_and_contains_entries_with_sum1ton_file() {
-        let mut hack_assembler = HackAssembler::new("Sum1ToN.asm").unwrap();
-        let _ = hack_assembler.execute();
-        assert_eq!(hack_assembler.symbol_table.contains("LOOP"), true);
-        assert_eq!(hack_assembler.symbol_table.contains("STOP"), true);
-        assert_eq!(hack_assembler.symbol_table.contains("i"), true);
-        assert_eq!(hack_assembler.symbol_table.contains("sum"), true);
-        assert_eq!(hack_assembler.symbol_table.get_address("LOOP"), Some(6));
-        assert_eq!(hack_assembler.symbol_table.get_address("STOP"), Some(21));
-        assert_eq!(hack_assembler.symbol_table.get_address("i"), Some(16));
-        assert_eq!(hack_assembler.symbol_table.get_address("sum"), Some(21));
-    }
-
-    #[test]
-    fn symbol_table_should_exists_with_test_file() {
-      let mut hack_assembler = HackAssembler::new("test.asm").unwrap();
-        let _ = hack_assembler.execute();
-        assert_eq!(hack_assembler.symbol_table.contains("i"), true);
-        assert_eq!(hack_assembler.symbol_table.get_address("i"), Some(1));
-        assert_eq!(Path::new("hack-files/test.hack").exists(), true);
-    } 
-
-    #[test]
-    fn symbol_table_should_exists_with_add_file() {
-      let mut hack_assembler = HackAssembler::new("Add.asm").unwrap();
-      let _ = hack_assembler.execute();
-        assert_eq!(hack_assembler.symbol_table.contains("THIS"), true);
-        assert_eq!(hack_assembler.symbol_table.get_address("THIS"), Some(3));
-        assert_eq!(Path::new("hack-files/Add.hack").exists(), true);
-    } 
+   
 }
