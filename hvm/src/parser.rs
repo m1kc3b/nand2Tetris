@@ -6,21 +6,21 @@ const ARITHMETIC_COMMANDS: [&str; 9] = ["add", "sub", "neg", "eq", "gt", "lt", "
 
 pub enum CommandType {
     Arithmetic(String), // command
-    Push(String, String), // arg1, arg2
-    Pop(String, String), // arg1, arg2
-    Label(String), // arg1
-    Goto(String), // arg1
-    If(String), // arg1
-    Function(String, String), // arg1, arg2
-    Return,
-    Call(String, String), // arg1, arg2
+    Push(String, u16), // arg1, arg2
+    Pop(String, u16), // arg1, arg2
+    // Label(String), // arg1
+    // Goto(String), // arg1
+    // If(String), // arg1
+    // Function(String, String), // arg1, arg2
+    // Return,
+    // Call(String, String), // arg1, arg2
 }
 
 pub fn parse_file(filename: &str) -> io::Result<Vec<CommandType>> {
   let path = Path::new(filename);
   let file = File::open(&path)?;
   let reader = io::BufReader::new(file);
-  let mut instructions = Vec::new();
+  let mut commands = Vec::new();
 
   for line in reader.lines() {
       let line = line?;
@@ -30,13 +30,13 @@ pub fn parse_file(filename: &str) -> io::Result<Vec<CommandType>> {
       if line.is_empty() {
           continue;
       } else if ARITHMETIC_COMMANDS.contains(&line.as_str()) {
-        instructions.push(CommandType::Arithmetic(line));
+        commands.push(CommandType::Arithmetic(line));
       } else if line.starts_with("push") {
         let (arg1, arg2) = get_args(&line);
-        instructions.push(CommandType::Push(arg1, arg2));
+        commands.push(CommandType::Push(arg1, arg2));
       } else if line.starts_with("pop") {
         let (arg1, arg2) = get_args(&line);
-        instructions.push(CommandType::Pop(arg1, arg2));
+        commands.push(CommandType::Pop(arg1, arg2));
       }
       // TODO: impl remaining CommandType:
       // Label
@@ -47,14 +47,14 @@ pub fn parse_file(filename: &str) -> io::Result<Vec<CommandType>> {
       // Call 
   }
 
-  Ok(instructions)
+  Ok(commands)
 }
 
 
 /// Get arguments
 /// example: push constant 7
 /// returns ("push".to_string(), "7".to_string())
-fn get_args(line: &str) -> (String, String) {
+fn get_args(line: &str) -> (String, u16) {
   let args: Vec<&str> = line.split_whitespace().collect();
-  (args[1].to_string(), args[2].to_string())
+  (args[1].to_string(), args[2].parse::<u16>().unwrap())
 }
