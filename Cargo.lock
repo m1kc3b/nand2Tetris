@@ -3,12 +3,22 @@
 version = 4
 
 [[package]]
-name = "assembler"
+name = "compiler"
+version = "0.1.0"
+
+[[package]]
+name = "hack_assembler"
+version = "0.1.0"
+
+[[package]]
+name = "hvm"
 version = "0.1.0"
 
 [[package]]
 name = "nand2Tetris"
 version = "0.1.0"
 dependencies = [
- "assembler",
+ "compiler",
+ "hack_assembler",
+ "hvm",
 ]

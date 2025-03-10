@@ -1,15 +1,15 @@
-# Nand To Tetris
+# Build a Modern Computer from First Principles: Nand to Tetris
 
-In Nand2Tetris course you build a computer named Hack from the bottom to the top. 
-From a nand logic gate to a operating system, passing by an assembler and a compiler working in a VM.
-I took this course focusing in the software development (assembler, two-tier compiler and os).
+The Nand2Tetris course is an innovative, hands-on computer science program that takes you on a journey from the most basic logic gate—the NAND gate—to building a complete, working computer system. In the first part, you construct the hardware, developing everything from simple logic circuits to a functioning CPU and memory. In the second part, you build the software stack by creating an assembler, a virtual machine, and even a compiler for a high-level language. This project-based approach demystifies how computers operate by letting you literally build them from scratch, providing deep insights into computer architecture, programming languages, and system design.
 
-## Project 4
-In this project, there are two exercices (Mult and Fill).
-To pass the first one, it necessary to implement a loop because there is no multiplier command implemented in the ALU. So, it is possible to replace multiplication by an addition. In the loop, it need to adds up R0 many times as R1. Example: R0=7 and R1=5, so R2=R0+R0+R0+R0+R0.
+## Roadmap
 
-## Project 5
-The objective of this project is to develop an assembler that translate asm file into hack file based on the machine specification.
+![roadmap of the project](./roadmap.png)
 
-## Project 7+8
-In this project we build a basic VM translator that will be extended in project 8.
+This repo contains: 
+- a basic Operating System
+- a Compiler
+- a Virtual Machine
+- an Assembler
+
+All are written in Rust 🦀 and develop in a bottom-up way.
