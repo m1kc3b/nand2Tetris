@@ -4,4 +4,4 @@ mod symbol_table;
 mod assembler;
 
 
-pub use assembler::assembler;
+pub use assembler::assemble;

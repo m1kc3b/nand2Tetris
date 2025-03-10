@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Write;
 use crate::{parser::*, code::*, symbol_table::SymbolTable};
 
-pub fn assembler(input: &str, output: &str) -> std::io::Result<()> {
+pub fn assemble(input: &str, output: &str) -> std::io::Result<()> {
   let instructions = parse_file(input)?;
   
   // First pass, records labels
