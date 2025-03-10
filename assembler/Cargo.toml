@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-name = "hack_assembler"
+name = "assembler"
 path = "src/lib.rs"
