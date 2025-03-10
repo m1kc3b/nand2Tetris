@@ -3,4 +3,6 @@ name = "virtual-machine"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[lib]
+name = "hvm"
+path = "src/lib.rs"

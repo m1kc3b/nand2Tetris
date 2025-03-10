@@ -7,13 +7,8 @@ name = "assembler"
 version = "0.1.0"
 
 [[package]]
-name = "compiler"
-version = "0.1.0"
-
-[[package]]
 name = "nand2Tetris"
 version = "0.1.0"
-
-[[package]]
-name = "virtual-machine"
-version = "0.1.0"
+dependencies = [
+ "assembler",
+]
