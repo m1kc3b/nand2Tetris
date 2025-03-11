@@ -9,16 +9,16 @@ pub fn translate(input: &str, output: &str) -> std::io::Result<()> {
   for instruction in instructions {
     let code: String = match instruction {
         CommandType::Arithmetic(command) => {
-          let command = write_arithmetic(command);
-          format!("{}", command)
+          let cmd = write_arithmetic(command)?;
+          format!("{}", cmd)
         },
         CommandType::Push(segment, index) => {
-          let command = write_push_pop(CommandType::Push(segment, index));
-          format!("{}", command)
+          let cmd = write_push_pop(CommandType::Push(segment, index))?;
+          format!("{}", cmd)
         },
         CommandType::Pop(segment, index) => {
-          let command = write_push_pop(CommandType::Pop(segment, index));
-          format!("{}", command)
+          let cmd = write_push_pop(CommandType::Pop(segment, index))?;
+          format!("{}", cmd)
         },
         // CommandType::Call(arg1, arg2) => {
         //   format!("")
