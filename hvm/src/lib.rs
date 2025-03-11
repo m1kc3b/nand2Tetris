@@ -1,7 +1,6 @@
-mod stack;
-mod memory_segments;
 mod parser;
 mod translator;
 mod code;
+mod ram;
 
-pub use translator::*;
+pub use translator::translate;
