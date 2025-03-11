@@ -1,24 +1,24 @@
 use std::fs::File;
 use std::io::Write;
-use crate::{code::{writeArithmetic, writePushPop}, parser::{parse_file, CommandType}};
+use crate::{code::{write_arithmetic, write_push_pop}, parser::{parse_file, CommandType}};
 
 pub fn translate(input: &str, output: &str) -> std::io::Result<()> {
   let instructions = parse_file(input)?;
   let mut file = File::create(output)?;
 
   for instruction in instructions {
-    let binary: String = match instruction {
+    let code: String = match instruction {
         CommandType::Arithmetic(command) => {
-          let cmd = writeArithmetic(command);
-          format!("")
+          let command = write_arithmetic(command);
+          format!("{}", command)
         },
-        CommandType::Push(arg1, arg2) => {
-          let _ = writePushPop(CommandType::Push(arg1, arg2));
-          format!("")
+        CommandType::Push(segment, index) => {
+          let command = write_push_pop(CommandType::Push(segment, index));
+          format!("{}", command)
         },
-        CommandType::Pop(arg1, arg2) => {
-          let _ = writePushPop(CommandType::Pop(arg1, arg2));
-          format!("")
+        CommandType::Pop(segment, index) => {
+          let command = write_push_pop(CommandType::Pop(segment, index));
+          format!("{}", command)
         },
         // CommandType::Call(arg1, arg2) => {
         //   format!("")
@@ -39,7 +39,7 @@ pub fn translate(input: &str, output: &str) -> std::io::Result<()> {
         //   format!("")
         // },
     };
-    write!(file, "{}", binary)?;
+    write!(file, "{}", code)?;
   }
   
   Ok(())
