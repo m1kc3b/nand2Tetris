@@ -4,10 +4,21 @@ use std::path::Path;
 
 const ARITHMETIC_COMMANDS: [&str; 9] = ["add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not"];
 
+pub enum MemorySegment {
+  Local,
+  Argument,
+  This,
+  That,
+  Temp,
+  Pointer,
+  Static,
+  Constant,
+}
+
 pub enum CommandType {
     Arithmetic(String), // command
-    Push(String, u16), // arg1, arg2
-    Pop(String, u16), // arg1, arg2
+    Push(MemorySegment, u16), // arg1, arg2
+    Pop(MemorySegment, u16), // arg1, arg2
     // Label(String), // arg1
     // Goto(String), // arg1
     // If(String), // arg1
@@ -32,11 +43,11 @@ pub fn parse_file(filename: &str) -> io::Result<Vec<CommandType>> {
       } else if ARITHMETIC_COMMANDS.contains(&line.as_str()) {
         commands.push(CommandType::Arithmetic(line));
       } else if line.starts_with("push") {
-        let (arg1, arg2) = get_args(&line);
-        commands.push(CommandType::Push(arg1, arg2));
+        let (segment, index) = get_args(&line);
+        commands.push(CommandType::Push(segment, index));
       } else if line.starts_with("pop") {
-        let (arg1, arg2) = get_args(&line);
-        commands.push(CommandType::Pop(arg1, arg2));
+        let (segment, index) = get_args(&line);
+        commands.push(CommandType::Pop(segment, index));
       }
       // TODO: impl remaining CommandType:
       // Label
@@ -53,8 +64,20 @@ pub fn parse_file(filename: &str) -> io::Result<Vec<CommandType>> {
 
 /// Get arguments
 /// example: push constant 7
-/// returns ("push".to_string(), "7".to_string())
-fn get_args(line: &str) -> (String, u16) {
+/// returns (MemorySegment::Constant, 7)
+fn get_args(line: &str) -> (MemorySegment, u16) {
   let args: Vec<&str> = line.split_whitespace().collect();
-  (args[1].to_string(), args[2].parse::<u16>().unwrap())
+  let segment = match args[1] {
+      "local" => MemorySegment::Local,
+      "argument" =>MemorySegment::Argument,
+      "this" => MemorySegment::This,
+      "that" => MemorySegment::That,
+      "temp" => MemorySegment::Temp,
+      "pointer" => MemorySegment::Pointer,
+      "static" => MemorySegment::Static,
+      "constant" => MemorySegment::Constant,
+      _ => panic!("Segment unknow!"),
+  };
+
+  (segment, args[2].parse::<u16>().unwrap())
 }
