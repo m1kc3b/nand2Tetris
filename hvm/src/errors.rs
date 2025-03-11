@@ -2,7 +2,7 @@ use std::{fmt, error::Error};
 
 #[derive(Debug)]
 pub enum HVMError {
-  UnknownCommand(String),
+  UnknownCommand(&'static str),
 
 }
 

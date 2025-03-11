@@ -5,6 +5,8 @@ use crate::{code::{write_arithmetic, write_push_pop}, parser::{parse_file, Comma
 pub fn translate(input: &str, output: &str) -> std::io::Result<()> {
   let instructions = parse_file(input)?;
   let mut file = File::create(output)?;
+  
+  let filename: Vec<&str> = input.split(".").collect();
 
   for instruction in instructions {
     let code: String = match instruction {
@@ -13,11 +15,11 @@ pub fn translate(input: &str, output: &str) -> std::io::Result<()> {
           format!("{}", cmd)
         },
         CommandType::Push(segment, index) => {
-          let cmd = write_push_pop(CommandType::Push(segment, index))?;
+          let cmd = write_push_pop(CommandType::Push(segment, index), filename[0])?;
           format!("{}", cmd)
         },
         CommandType::Pop(segment, index) => {
-          let cmd = write_push_pop(CommandType::Pop(segment, index))?;
+          let cmd = write_push_pop(CommandType::Pop(segment, index), filename[0])?;
           format!("{}", cmd)
         },
         // CommandType::Call(arg1, arg2) => {
