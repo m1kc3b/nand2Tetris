@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub struct SymbolTable {
     table: HashMap<String, u16>,
     next_var_address: u16,

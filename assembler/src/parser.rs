@@ -17,15 +17,30 @@ pub fn parse_file(filename: &str) -> io::Result<Vec<Instruction>> {
 
     for line in reader.lines() {
         let line = line?;
-        let line = line.split("//").next().unwrap().trim(); // Remove comments
+        let line = line.trim();
 
-        if line.is_empty() {
+        // Remove empty lines
+        if line.is_empty() { 
             continue;
-        } else if line.starts_with('@') {
+        } 
+        // Remove comments
+        else if line.starts_with("//") { 
+            continue;
+        } 
+        // A instruction: @R0
+        else if line.starts_with("@R") {
+            instructions.push(Instruction::A(line[2..].to_string()));
+        } 
+        // A instruction: @0
+        else if line.starts_with('@') {
             instructions.push(Instruction::A(line[1..].to_string()));
-        } else if line.starts_with('(') && line.ends_with(')') {
+        } 
+        // Label instruction
+        else if line.starts_with("(") && line.ends_with(")") {
             instructions.push(Instruction::Label(line[1..line.len() - 1].to_string()));
-        } else {
+        } 
+        // C instruction
+        else {
             let mut parts = line.split('=');
             let (dest, comp_jump) = if let Some(d) = parts.next() {
                 if let Some(cj) = parts.next() {
@@ -44,5 +59,8 @@ pub fn parse_file(filename: &str) -> io::Result<Vec<Instruction>> {
             instructions.push(Instruction::C { dest, comp, jump });
         }
     }
+
     Ok(instructions)
 }
+
+
