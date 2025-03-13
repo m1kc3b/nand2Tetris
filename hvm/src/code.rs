@@ -1,19 +1,28 @@
-use std::io::Result;
+use std::{io::Result, sync::Mutex};
+
 use crate::parser::{CommandType, MemorySegment};
 // use crate::errors::HVMError;
+
+static STATIC_COUNT: u16 = 16;
 
 pub fn write_arithmetic(command: String) -> Result<String> {
   // writes to the output file the assembly code that implements the given arithmetic-logical command.
   match command.as_str() {
-      "add" => Ok("// add\n@SP\nAM=M-1\nD=M\nA=A-1\nM=M+D\n\n".to_string()),
-      "sub" => Ok("// sub\n@SP\nAM=M-1\nD=M\nA=A-1\nM=M-D\n\n".to_string()),
+      "add" => Ok("// add\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\nA=M-1\nM=D+M\n\n".to_string()),
+      "sub" => Ok("// sub\n@SP\nA=M-1\nD=-M\nM=0\n@SP\nM=M-1\nA=M-1\nM=D+M\n\n".to_string()),
       "neg" => Ok("// neg\n@SP\nA=M-1\nM=-M\n\n".to_string()),
-      "eq" => Ok("// eq@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\n@EQUAL\nD;JEQ\n@SP\nA=M-1\nM=0\n@END\n0;JMP\n(EQUAL)\n@SP\nA=M-1\nM=-1\n(END)\n\n".to_string()),
-      "gt" => Ok("// gt\n@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\n@GREATER\nD;JGT\n@SP\nA=M-1\nM=0\n@END\n0;JMP\n(GREATER)\n@SP\nA=M-1\nM=-1\n(END)\n\n".to_string()),
-      "lt" => Ok("// lt\n@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\n@LESS\nD;JLT\n@SP\nA=M-1\nM=0\n@END\n0;JMP\n(LESS)\n@SP\nA=M-1\nM=-1\n(END)\n\n".to_string()),
-      "and" => Ok("// and\n@SP\nAM=M-1\nD=M\nA=A-1\nM=M&D\n\n".to_string()),
-      "or" => Ok("// or\n@SP\nAM=M-1\nD=M\nA=A-1\nM=M|D\n\n".to_string()),
-      "not" => Ok("// not\n@SP\nA=M-1\nM=!M\n".to_string()),
+      // "eq" => Ok("// eq\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\nA=M-1\nD=M-D\n@FALSE\nD;JEQ\nM=1\n(FALSE)\nM=0\n\n".to_string()),
+      "eq" => Ok("// eq\n@SP\nA=M-1\nD=M\nA=A-1\nD=M-D\n@EQ_TRUE\nD;JEQ\n@SP\nA=M-1\nM=0\n@EQ_END\n0;JMP\n(EQ_TRUE)\n  @SP\n  A=M-1\n  M=-1\n(EQ_END)\n\n".to_string()),
+      // "gt" => Ok("// gt\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\nA=M-1\nD=M-D\n@FALSE\nD;JLT\nM=1\n(FALSE)\nM=0\n\n".to_string()),
+      "gt" => Ok("// gt\n@SP\nA=M-1\nD=M\nA=A-1\nD=M-D\n@GT_TRUE\nD;JGT\n@SP\nA=M-1\nM=0\n@GT_END\n0;JMP\n(GT_TRUE)\n  @SP\n  A=M-1\n  M=-1\n(GT_END)\n\n".to_string()),
+      // "lt" => Ok("// lt\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\nA=M-1\nD=M-D\n@FALSE\nD;JGT\nM=1\n(FALSE)\nM=0\n\n".to_string()),
+      "lt" => Ok("// lt\n@SP\nM=M-1\nD=M\nA=A-1\nD=M-D\n@LT_TRUE\nD;JLT\n@SP\nA=M-1\nM=0\n@LT_END\n0;JMP\n(LT_TRUE)\n  @SP\n  A=M-1\n  M=-1\n(LT_END)\n\n".to_string()),
+      // "and" => Ok("// and\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\nA=M-1\nD=D&M\n@FALSE\nD;JNE\nM=1\n(FALSE)\nM=0\n\n".to_string()),
+      "and" => Ok("// and\n@SP\nA=M-1\nD=M\nA=A-1\nM=D&M\n\n".to_string()),
+      // "or" => Ok("// or\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\nA=M-1\nD=D|M\n@FALSE\nD;JNE\nM=1\n(FALSE)\nM=0\n\n".to_string()),
+      "or" => Ok("// or\n@SP\nA=M-1\nD=M\nA=A-1\nM=D|M\n\n".to_string()),
+      // "not" => Ok("// not\n@SP\nA=M-1\nD=M\nM=0\nD=!D\n@FALSE\nD;JNE\nM=1\n(FALSE)\nM=D\n".to_string()),
+      "not" => Ok("// not\n@SP\nA=M-1\nM=!M\n\n".to_string()),
       // _ => Err(HVMError::UnknownCommand("Unknow arithmetic command")),
       _ => panic!("Unknow arithmetic command")
       }
@@ -54,58 +63,68 @@ pub fn write_push_pop(command: CommandType, filename: &str) -> Result<String> {
 }
 
 fn write_push_argument(index: u16) -> String {
-  format!("// push argument {index}\n@ARG\nD=M\n@{index}\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
+  format!("// push argument {index}\n@{index}\nD=A\n@ARG\nA=D+M\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
 }
 
 fn write_pop_argument(index: u16) -> String {
-  format!("// pop argument {index}\n@ARG\nD=M\n@{index}\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n\n")
+  let increment = incremente_m(index);
+
+  format!("// pop argument {index}\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\n@ARG\n{}M=D\n\n", increment)
 }
 
 fn write_push_this(index: u16) -> String {
-  format!("// push this {index}\n@THIS\nD=M\n@{index}\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
+  format!("// push this {index}\n@{index}\nD=A\n@THIS\nA=D+M\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
 }
 
 fn write_pop_this(index: u16) -> String {
-  format!("// pop this {index}\n@THIS\nD=M\n@{index}\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n\n")
+  let increment = incremente_m(index);
+
+  format!("// pop this {index}\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\n@THIS\n{}M=D\n\n", increment)
 }
 
 fn write_push_that(index: u16) -> String {
-  format!("// push that {index}\n@THAT\nD=M\n@{index}\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
+  format!("// push that {index}\n@{index}\nD=A\n@THAT\nA=D+M\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
 }
 
 fn write_pop_that(index: u16) -> String {
-  format!("// pop that {index}\n@THAT\nD=M\n@{index}\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n\n")
+  let increment = incremente_m(index);
+
+  format!("// pop that {index}\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\n@THAT\n{}M=D\n\n", increment)
 }
 
 fn write_push_temp(index: u16) -> String {
-  format!("// push temp {index}\n@5\nD=A\n@{index}\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
+  format!("// push temp {index}\n@{index}\nD=A\n@TEMP\nA=D+M\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
 }
 
 fn write_pop_temp(index: u16) -> String {
-  format!("// pop temp {index}\n@5\nD=A\n@{index}\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n\n")
+  let increment = incremente_m(index);
+
+  format!("// pop temp {index}\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\n@TEMP\n{}M=D\n\n", increment)
 }
 
 fn write_push_static(filename: &str, index: u16) -> String {
-  format!("// push static {index}\n@{filename}.{index}\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
+  let count =  STATIC_COUNT + index;
+  format!("// push static {index}\n@{index}\nD=A\n@{filename}.{index}\n@{count}\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
 }
 
 fn write_pop_static(filename: &str, index: u16) -> String {
-  format!("// pop static {index}\n@SP\nAM=M-1\nD=M\n@{filename}.{index}\nM=D\n\n")
+  let count =  STATIC_COUNT + index;
+  format!("// pop static {index}\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\n@{filename}.{index}\n@{count}\nM=D\n\n")
 }
 
 fn write_push_pointer(index: u16) -> String {
   if index == 0 {
-    return format!("// push pointer {index}\n@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n");
+    return write_push_this(index);
   } else {
-    return format!("// push pointer {index}\n@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n");
+    return write_pop_that(index);
   }
 }
 
 fn write_pop_pointer(index: u16) -> String {
   if index == 0 {
-    return format!("// pop pointer {index}\n@SP\nAM=M-1\nD=M\n@THIS\nM=D\n\n");
+    return write_pop_this(index);
   } else {
-    return format!("// pop pointer {index}\n@SP\nAM=M-1\nD=M\n@THAT\nM=D\n\n");
+    return write_pop_that(index);
   }
 }
 
@@ -114,9 +133,29 @@ fn write_push_constant(index: u16) -> String {
 }
 
 fn write_push_local(index: u16) -> String {
-  format!("// push local {index}\n@LCL\nD=M\n@{index}\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
+  format!("// push local {index}\n@{index}\nD=A\n@LCL\nA=D+M\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n\n")
 }
 
 fn write_pop_local(index: u16) -> String {
-  format!("// pop local {index}\n@LCL\nD=M\n@{index}\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n\n")
+  let increment = incremente_m(index);
+
+  format!("// pop local {index}\n@SP\nA=M-1\nD=M\nM=0\n@SP\nM=M-1\n@LCL\n{}M=D\n\n", increment)
+}
+
+
+fn incremente_m(index: u16) -> String {
+  let mut increment = String::new();
+
+  match index {
+      0 => increment.push_str("A=M\n"),
+      1 => increment.push_str("A=M+1\n"),
+      _ => {
+        increment.push_str("A=M+1\n");
+        for _ in 1..index {
+          increment.push_str("A=A+1\n")
+        }
+      } 
+  }
+
+  increment
 }

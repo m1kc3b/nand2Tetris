@@ -6,7 +6,8 @@ pub fn translate(input: &str, output: &str) -> std::io::Result<()> {
   let instructions = parse_file(input)?;
   let mut file = File::create(output)?;
   
-  let filename: Vec<&str> = input.split(".").collect();
+  let name: Vec<&str> = input.split("/").collect();
+  let filename: Vec<&str> = name[1].split('.').collect();
 
   for instruction in instructions {
     let code: String = match instruction {
@@ -43,6 +44,12 @@ pub fn translate(input: &str, output: &str) -> std::io::Result<()> {
     };
     write!(file, "{}", code)?;
   }
+
+  write!(file, "{}", write_end_inifinite_loop());
   
   Ok(())
+}
+
+fn write_end_inifinite_loop() -> String {
+  format!("// End\n(END)\n0;JMP\n")
 }
