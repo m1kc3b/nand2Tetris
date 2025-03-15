@@ -1,7 +1,7 @@
 mod parser;
 mod translator;
 mod code;
-mod ram;
 mod errors;
+mod asm;
 
 pub use translator::translate;

@@ -19,12 +19,12 @@ pub enum CommandType {
     Arithmetic(String), // command
     Push(MemorySegment, u16), // arg1, arg2
     Pop(MemorySegment, u16), // arg1, arg2
-    // Label(String), // arg1
-    // Goto(String), // arg1
-    // If(String), // arg1
-    // Function(String, String), // arg1, arg2
+    // Label(String), // label
+    // Goto(String), // label
+    // If(String), // label
+    // Function(String, u8), // functionName, nVars
+    // Call(String, u8), // functionName, nArgs
     // Return,
-    // Call(String, String), // arg1, arg2
 }
 
 pub fn parse_file(filename: &str) -> io::Result<Vec<CommandType>> {

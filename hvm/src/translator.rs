@@ -3,11 +3,15 @@ use std::io::Write;
 use crate::{code::{write_arithmetic, write_push_pop}, parser::{parse_file, CommandType}};
 
 pub fn translate(input: &str, output: &str) -> std::io::Result<()> {
+  // TODO:
+  // input == file
+  // input == folder
+
   let instructions = parse_file(input)?;
   let mut file = File::create(output)?;
   
   let name: Vec<&str> = input.split("/").collect();
-  let filename: Vec<&str> = name[1].split('.').collect();
+  let filename: Vec<&str> = name.last().unwrap().split('.').collect();
 
   for instruction in instructions {
     let code: String = match instruction {
@@ -45,11 +49,11 @@ pub fn translate(input: &str, output: &str) -> std::io::Result<()> {
     write!(file, "{}", code)?;
   }
 
-  write!(file, "{}", write_end_inifinite_loop());
+  let _ = write!(file, "{}", write_end_inifinite_loop());
   
   Ok(())
 }
 
 fn write_end_inifinite_loop() -> String {
-  format!("// End\n(END)\n0;JMP\n")
+  format!("// End\n(END)\n@END\n0;JMP\n")
 }
