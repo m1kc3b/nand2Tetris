@@ -1,6 +1,5 @@
-use std::fs::File;
+use std::{fs::File, path::PathBuf};
 use std::io::{self, BufRead};
-use std::path::Path;
 
 const ARITHMETIC_COMMANDS: [&str; 9] = ["add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not"];
 
@@ -27,11 +26,14 @@ pub enum CommandType {
     // Return,
 }
 
-pub fn parse_file(filename: &str) -> io::Result<Vec<CommandType>> {
-  let path = Path::new(filename);
-  let file = File::open(&path)?;
-  let reader = io::BufReader::new(file);
+// Parses a given file into a Vec<CommandType>
+pub fn parse_file(files: Vec<PathBuf>) -> io::Result<Vec<CommandType>> {
   let mut commands = Vec::new();
+
+  
+  for file in files {
+    let f = File::open(file)?;
+    let reader = io::BufReader::new(f);
 
   for line in reader.lines() {
       let line = line?;
@@ -56,6 +58,7 @@ pub fn parse_file(filename: &str) -> io::Result<Vec<CommandType>> {
       // Function
       // Return
       // Call 
+  }
   }
 
   Ok(commands)

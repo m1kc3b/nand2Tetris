@@ -69,9 +69,6 @@ pub fn write_push_pop(command: CommandType, filename: &str) -> Result<String> {
   }
 }
 
-// TODO:
-// Informs that the translation of a new VM file has started (called by the VMTranslator)
-fn set_file_name(filename: String) {}
 
 // TODO:
 // Writes assembly code that effects the label command
@@ -97,6 +94,13 @@ fn write_call(function_name: String, n_args: u8) {}
 // Writes assembly code that effects the return command
 fn write_return() {}
 
+
+
+/* 
+
+HELPERS 
+
+*/
 // Generic function to write push ARG, LCL, TEMP, THIS, THAT command
 fn write_push(index: u16, label: &str, segment: &str) -> String {
   if label == "TEMP" {
@@ -108,7 +112,6 @@ fn write_push(index: u16, label: &str, segment: &str) -> String {
 }
 
 // Writes push STATIC command
-// TODO: check
 fn write_push_static(filename: &str, index: u16) -> String {
   let count =  STATIC_COUNT + index;
   format!("// push static {index}\n@{index}\nD=A\n@{filename}.{index}\n@{count}\nD=M{}\n\n", asm::PUSH_X)
@@ -120,7 +123,6 @@ fn write_push_constant(index: u16) -> String {
 }
 
 // Writes push POINTER command
-// TODO: check
 fn write_push_pointer(index: u16) -> String {
   if index == 0 {
     format!("// push pointer {index}\n@THIS\nD=M\n{}\n\n", asm::PUSH_X)
@@ -141,14 +143,12 @@ fn write_pop(index: u16, label: &str, segment: &str) -> String {
 }
 
 // Writes pop STATIC command
-// TODO: check
 fn write_pop_static(filename: &str, index: u16) -> String {
   let count =  STATIC_COUNT + index;
   format!("// pop static {index}{}\n@{filename}.{index}\n@{count}\nM=D\n\n", asm::POP_Y)
 }
 
 // Writes pop POINTER command
-// TODO: check
 fn write_pop_pointer(index: u16) -> String {
   if index == 0 {
     return format!("// pop pointer {index}\n{}\n@THIS\nM=D\n\n", asm::POP_Y);
