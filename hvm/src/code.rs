@@ -70,29 +70,51 @@ pub fn write_push_pop(command: CommandType, filename: &str) -> Result<String> {
 }
 
 
-// TODO:
 // Writes assembly code that effects the label command
-fn write_label(label: String) {}
+pub fn write_label(label: &str) -> Result<String>  {
+  // label = "N_LT_2"
 
-// TODO:
+  Ok(format!("({})\n", label))
+}
+
 // Writes assembly code that effects the goto command
-fn write_goto(label: String) {}
+pub fn write_goto(label: &str) -> Result<String> {
+  // command = "goto N_GE_2"
+  // unconditional branching
+  Ok(format!("@{}\n0;JMP\n", label))
+}
 
-// TODO:
 // Writes assembly code that effects the if-goto command
-fn write_if(label: String) {}
+pub fn write_if(label: &str) -> Result<String> {
+  // label = "N_LT_2"
+  // conditional branching
+  // pop y
+  // != 0
+  Ok(format!("// if-goto{}\n@{}\nD;JGT\n\n", asm::POP_Y, label))
+}
 
 // TODO:
 // Writes assembly code that effects the function command
-fn write_function(function_name: String, n_vars: u8) {}
+pub fn write_function(function_name: &str, nvars: u8) -> Result<String> {
+  // function_name = "Main.fibonacci",  nvars = 0
+
+  Ok("".to_string())
+}
 
 // TODO:
 // Writes assembly code that effects the call command
-fn write_call(function_name: String, n_args: u8) {}
+pub fn write_call(function_name: &str, nargs: u8) -> Result<String> {
+  // function_name = "Main.fibonacci",  nargs = 1
+
+  Ok("".to_string())
+}
 
 // TODO:
 // Writes assembly code that effects the return command
-fn write_return() {}
+pub fn write_return() -> Result<String> {
+
+  Ok("".to_string())
+}
 
 
 
@@ -105,9 +127,9 @@ HELPERS
 fn write_push(index: u16, label: &str, segment: &str) -> String {
   if label == "TEMP" {
     let count = index + 5;
-    format!("// push {segment} {index}\n@{index}\nD=A\n@{count}\nD=M\n{}\n\n", asm::PUSH_X)
+    format!("// push {segment} {index}\n@{index}\nD=A\n@{count}\nD=M{}\n\n", asm::PUSH_X)
   } else {
-    format!("// push {segment} {index}\n@{index}\nD=A\n@{label}\nA=D+M\nD=M\n{}\n\n", asm::PUSH_X)
+    format!("// push {segment} {index}\n@{index}\nD=A\n@{label}\nA=D+M\nD=M{}\n\n", asm::PUSH_X)
   }
 }
 
@@ -125,9 +147,9 @@ fn write_push_constant(index: u16) -> String {
 // Writes push POINTER command
 fn write_push_pointer(index: u16) -> String {
   if index == 0 {
-    format!("// push pointer {index}\n@THIS\nD=M\n{}\n\n", asm::PUSH_X)
+    format!("// push pointer {index}\n@THIS\nD=M{}\n\n", asm::PUSH_X)
   } else {
-    format!("// push pointer {index}\n@THAT\nD=M\n{}\n\n", asm::PUSH_X)
+    format!("// push pointer {index}\n@THAT\nD=M{}\n\n", asm::PUSH_X)
   }
 }
 
@@ -136,7 +158,7 @@ fn write_pop(index: u16, label: &str, segment: &str) -> String {
   let increment = incremente_m(index);
   if label == "TEMP" {
     let count = index + 5;
-    return format!("// pop {segment} {index}\n{}\n@{count}\nM=D\n\n", asm::POP_Y)  
+    return format!("// pop {segment} {index}{}\n@{count}\nM=D\n\n", asm::POP_Y)  
   } else {
     return format!("// pop {segment} {index}{}\n@{label}\n{}M=D\n\n", asm::POP_Y, increment)
   }
@@ -151,9 +173,9 @@ fn write_pop_static(filename: &str, index: u16) -> String {
 // Writes pop POINTER command
 fn write_pop_pointer(index: u16) -> String {
   if index == 0 {
-    return format!("// pop pointer {index}\n{}\n@THIS\nM=D\n\n", asm::POP_Y);
+    return format!("// pop pointer {index}{}\n@THIS\nM=D\n\n", asm::POP_Y);
   } else {
-    return format!("// pop pointer {index}\n{}\n@THAT\nM=D\n\n", asm::POP_Y);
+    return format!("// pop pointer {index}{}\n@THAT\nM=D\n\n", asm::POP_Y);
   }
 }
 
