@@ -8,8 +8,8 @@ static STATIC_COUNT: u16 = 16;
 
 
 // Writes to the output file the assembly code that implements the given arithmetic-logical command.
-pub fn write_arithmetic(command: String) -> Result<String> {
-  match command.as_str() {
+pub fn write_arithmetic(command: &str) -> Result<String> {
+  match command {
       "add" => Ok(format!("{}", asm::ADD)),
       "sub" => Ok(format!("{}", asm::SUB)),
       "neg" => Ok(format!("{}", asm::NEG)),
@@ -36,7 +36,7 @@ pub fn write_arithmetic(command: String) -> Result<String> {
 }
 
 // Write to the output file the assembly code that implements the given push or pop command.
-pub fn write_push_pop(command: CommandType, filename: &str) -> Result<String> {
+pub fn write_push_pop(command: &CommandType, filename: &str) -> Result<String> {
   match command {
       CommandType::Push(segment, index) => {
         let code = match segment {
@@ -88,32 +88,75 @@ pub fn write_goto(label: &str) -> Result<String> {
 pub fn write_if(label: &str) -> Result<String> {
   // label = "N_LT_2"
   // conditional branching
-  // pop y
-  // != 0
   Ok(format!("// if-goto{}\n@{}\nD;JGT\n\n", asm::POP_Y, label))
 }
 
-// TODO:
 // Writes assembly code that effects the function command
-pub fn write_function(function_name: &str, nvars: u8) -> Result<String> {
+pub fn write_function(function_name: &str, nvars: &u8) -> Result<String> {
   // function_name = "Main.fibonacci",  nvars = 0
-
-  Ok("".to_string())
+  // add label 
+  let label = write_label(function_name)?;
+  // init nvars local at 0
+  let mut local_vars_init = String::new();
+  local_vars_init.push_str("@1\nA=M\nM=0\n");
+  for index in 1..nvars.clone() {
+    let init_local = format!("@1\nA=M+{index}\nM=0\n");
+    local_vars_init.push_str(&init_local);
+  }
+  Ok(format!("{}{}\n", label, local_vars_init))
 }
 
 // TODO:
 // Writes assembly code that effects the call command
-pub fn write_call(function_name: &str, nargs: u8) -> Result<String> {
+pub fn write_call(function_name: &str, nargs: &u8) -> Result<String> {
   // function_name = "Main.fibonacci",  nargs = 1
 
   Ok("".to_string())
 }
 
-// TODO:
 // Writes assembly code that effects the return command
 pub fn write_return() -> Result<String> {
+// Save LCL as `frame`
+let save_frame = "@LCL\nD=M\n@R13\nM=D\n";
 
-  Ok("".to_string())
+// Save retAddr (frame - 5) dans R14
+let save_ret_addr = "@5\nA=D-A\nD=M\n@R14\nM=D\n";
+
+// ARG[0] = return value
+let get_last_values = "@SP\nA=M-1\nD=M\n";
+let updates_arg0 = "@ARG\nA=M\nM=D\n";
+
+// SP = ARG + 1
+let updates_sp = "@ARG\nD=M+1\n@SP\nM=D\n";
+
+// THAT = *(frame - 1)
+let updates_that = "@R13\nD=M-1\nA=D\nD=M\n@THAT\nM=D\n";
+
+// THIS = *(frame - 2)
+let updates_this = "@R13\nD=M\n@2\nA=D-A\nD=M\n@THIS\nM=D\n";
+
+// ARG = *(frame - 3)
+let updates_arg = "@R13\nD=M\n@3\nA=D-A\nD=M\n@ARG\nM=D\n";
+
+// LCL = *(frame - 4)
+let updates_lcl = "@R13\nD=M\n@4\nA=D-A\nD=M\n@LCL\nM=D\n";
+
+// Jump to retAdr
+let jump_to_ret = "@R14\nA=M\n0;JMP\n";
+
+Ok(format!(
+    "// return\n{}{}{}{}{}{}{}{}{}{}",
+    save_frame,
+    save_ret_addr,
+    get_last_values,
+    updates_arg0,
+    updates_sp,
+    updates_that,
+    updates_this,
+    updates_arg,
+    updates_lcl,
+    jump_to_ret
+))
 }
 
 
@@ -124,7 +167,7 @@ HELPERS
 
 */
 // Generic function to write push ARG, LCL, TEMP, THIS, THAT command
-fn write_push(index: u16, label: &str, segment: &str) -> String {
+fn write_push(index: &u16, label: &str, segment: &str) -> String {
   if label == "TEMP" {
     let count = index + 5;
     format!("// push {segment} {index}\n@{index}\nD=A\n@{count}\nD=M{}\n\n", asm::PUSH_X)
@@ -134,19 +177,19 @@ fn write_push(index: u16, label: &str, segment: &str) -> String {
 }
 
 // Writes push STATIC command
-fn write_push_static(filename: &str, index: u16) -> String {
+fn write_push_static(filename: &str, index: &u16) -> String {
   let count =  STATIC_COUNT + index;
   format!("// push static {index}\n@{index}\nD=A\n@{filename}.{index}\n@{count}\nD=M{}\n\n", asm::PUSH_X)
 }
 
 // Writes push CONSTANT command
-fn write_push_constant(index: u16) -> String {
+fn write_push_constant(index: &u16) -> String {
   format!("// push constant {index}\n@{index}\nD=A{}\n\n", asm::PUSH_X)
 }
 
 // Writes push POINTER command
-fn write_push_pointer(index: u16) -> String {
-  if index == 0 {
+fn write_push_pointer(index: &u16) -> String {
+  if *index == 0 {
     format!("// push pointer {index}\n@THIS\nD=M{}\n\n", asm::PUSH_X)
   } else {
     format!("// push pointer {index}\n@THAT\nD=M{}\n\n", asm::PUSH_X)
@@ -154,8 +197,8 @@ fn write_push_pointer(index: u16) -> String {
 }
 
 // Generic function to write pop ARG, LCL, TEMP, THIS, THAT command
-fn write_pop(index: u16, label: &str, segment: &str) -> String {
-  let increment = incremente_m(index);
+fn write_pop(index: &u16, label: &str, segment: &str) -> String {
+  let increment = incremente_m(*index);
   if label == "TEMP" {
     let count = index + 5;
     return format!("// pop {segment} {index}{}\n@{count}\nM=D\n\n", asm::POP_Y)  
@@ -165,14 +208,14 @@ fn write_pop(index: u16, label: &str, segment: &str) -> String {
 }
 
 // Writes pop STATIC command
-fn write_pop_static(filename: &str, index: u16) -> String {
+fn write_pop_static(filename: &str, index: &u16) -> String {
   let count =  STATIC_COUNT + index;
   format!("// pop static {index}{}\n@{filename}.{index}\n@{count}\nM=D\n\n", asm::POP_Y)
 }
 
 // Writes pop POINTER command
-fn write_pop_pointer(index: u16) -> String {
-  if index == 0 {
+fn write_pop_pointer(index: &u16) -> String {
+  if *index == 0 {
     return format!("// pop pointer {index}{}\n@THIS\nM=D\n\n", asm::POP_Y);
   } else {
     return format!("// pop pointer {index}{}\n@THAT\nM=D\n\n", asm::POP_Y);

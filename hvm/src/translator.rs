@@ -32,23 +32,23 @@ pub fn translate(input: &str) -> std::io::Result<()> {
   for instruction in instructions {
     let code: String = match instruction {
         CommandType::Arithmetic(command) => {
-          let cmd = write_arithmetic(command)?;
+          let cmd = write_arithmetic(&command)?;
           format!("{}", cmd)
         },
-        CommandType::Push(segment, index) => {
-          let cmd = write_push_pop(CommandType::Push(segment, index), output_name)?;
+        CommandType::Push(_, _) => {
+          let cmd = write_push_pop(&instruction, output_name)?;
           format!("{}", cmd)
         },
-        CommandType::Pop(segment, index) => {
-          let cmd = write_push_pop(CommandType::Pop(segment, index), output_name)?;
+        CommandType::Pop(_, _) => {
+          let cmd = write_push_pop(&instruction, output_name)?;
           format!("{}", cmd)
         },
         CommandType::Call(function_name, nargs) => {
-          let cmd = write_call(&function_name, nargs)?;
+          let cmd = write_call(&function_name, &nargs)?;
           format!("{}", cmd)
         },
         CommandType::Function(function_name, nvars) => {
-          let cmd = write_function(&function_name, nvars)?;
+          let cmd = write_function(&function_name, &nvars)?;
           format!("{}", cmd)
         },
         CommandType::Goto(label) => {
