@@ -24,6 +24,7 @@ pub enum CommandType {
     Function(String, u8),     // functionName, nVars
     Call(String, u8),         // functionName, nArgs
     Return,
+    NewFile(String),
 }
 
 // Parses a given file into a Vec<CommandType>
@@ -31,8 +32,11 @@ pub fn parse_file(files: Vec<PathBuf>) -> io::Result<Vec<CommandType>> {
     let mut commands = Vec::new();
 
     for file in files {
-        let f = File::open(file)?;
+        let f = File::open(&file)?;
         let reader = io::BufReader::new(f);
+
+        let filename = get_file_name(&file);
+        commands.push(CommandType::NewFile(filename));
 
         for line in reader.lines() {
             let line = line?;
@@ -108,4 +112,10 @@ fn get_function_name_and_nvars(line: &str) -> (String, u8) {
   let function_name = args[1].to_string();
   let nvars = args[2].parse::<u8>().unwrap();
   (function_name, nvars)
+}
+
+// Get Filename
+fn get_file_name(file: &PathBuf) -> String {
+    let filename = file.file_name().unwrap_or_else(|| file.as_os_str());
+    format!("{}", filename.to_string_lossy())
 }
