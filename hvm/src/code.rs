@@ -4,7 +4,7 @@ use rand;
 use std::io::Result;
 // use crate::errors::HVMError;
 
-static STATIC_COUNT: u16 = 16;
+// static STATIC_COUNT: u16 = 16;
 
 // Writes to the output file the assembly code that implements the given arithmetic-logical command.
 pub fn write_arithmetic(command: &str) -> Result<String> {
@@ -26,14 +26,14 @@ pub fn write_arithmetic(command: &str) -> Result<String> {
             let count1 = rand::random_range(1000..=99999);
             let count2 = rand::random_range(1000..=99999);
             Ok(format!(
-                "// eq\n@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\n@COUNT_{count1}\nD;JGT\nD=0\n@COUNT_{count2}\n0;JMP\n(COUNT_{count1})\nD=-1\n(COUNT_{count2})\n@SP\nA=M-1\nM=D\n\n"
+                "// gt\n@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\n@COUNT_{count1}\nD;JGT\nD=0\n@COUNT_{count2}\n0;JMP\n(COUNT_{count1})\nD=-1\n(COUNT_{count2})\n@SP\nA=M-1\nM=D\n\n"
             ))
         }
         "lt" => {
             let count1 = rand::random_range(1000..=99999);
             let count2 = rand::random_range(1000..=99999);
             Ok(format!(
-                "// eq\n@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\n@COUNT_{count1}\nD;JLT\nD=0\n@COUNT_{count2}\n0;JMP\n(COUNT_{count1})\nD=-1\n(COUNT_{count2})\n@SP\nA=M-1\nM=D\n\n"
+                "// lt\n@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\n@COUNT_{count1}\nD;JLT\nD=0\n@COUNT_{count2}\n0;JMP\n(COUNT_{count1})\nD=-1\n(COUNT_{count2})\n@SP\nA=M-1\nM=D\n\n"
             ))
         }
         _ => panic!("Unknow arithmetic command"),
@@ -75,27 +75,27 @@ pub fn write_push_pop(command: &CommandType, filename: &str) -> Result<String> {
 }
 
 // Writes assembly code that effects the label command
-pub fn write_label(label: &str) -> Result<String> {
-    Ok(format!("({})\n", label))
+pub fn write_label(func_name: &str, label: &str) -> Result<String> {
+    Ok(format!("({}${})\n",func_name, label))
 }
 
 // Writes assembly code that effects the goto command
-pub fn write_goto(label: &str) -> Result<String> {
-    Ok(format!("@{}\n0;JMP\n\n", label))
+pub fn write_goto(func_name: &str, label: &str) -> Result<String> {
+    Ok(format!("@{}${}\n0;JMP\n\n", func_name, label))
 }
 
 // Writes assembly code that effects the if-goto command
-pub fn write_if(label: &str) -> Result<String> {
-    Ok(format!("// if-goto{}\n@{}\nD;JGT\n\n", asm::POP_Y, label))
+pub fn write_if(func_name: &str, label: &str) -> Result<String> {
+    Ok(format!("// if-goto{}\n@{}${}\nD;JNE\n\n", asm::POP_Y, func_name, label))
 }
 
 // Writes assembly code that effects the function command
 pub fn write_function(function_name: &str, nvars: u8) -> Result<String> {
     // add label
-    let label = write_label(function_name)?;
+    let label = format!("({})\n", function_name);
     // init nvars local at 0
     let mut local_vars_init = String::new();
-    local_vars_init.push_str("@1\nA=M\nM=0\n");
+    // local_vars_init.push_str("@1\nA=M\nM=0\n");
     for _ in 1..nvars.clone() {
         let init_local = format!("@1\nA=M+1\nM=0\n");
         local_vars_init.push_str(&init_local);
@@ -110,22 +110,24 @@ pub fn write_call(function_name: &str, nargs: u8) -> Result<String> {
 
     let save_return_address = format!("@{}\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n", return_label);
 
-    let save_lcl = "@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
-    let save_arg = "@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
-    let save_this = "@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
-    let save_that = "@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+    let save_lcl = "// push LCL\n@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+    let save_arg = "// push ARG\n@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+    let save_this = "// push THIS\n@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+    let save_that = "// push THAT\n@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
 
-    let reposition_arg = format!("@SP\nD=M\n@{}\nD=D-A\n@ARG\nM=D\n", nargs as i16 + 5);
+    // let reposition_arg = format!("// ARG=SP-(nArgs+5)\nD=M\n@1\nD=D-A\n@{}\nD=D-A\n@ARG\nM=D\n", nargs + 5);
+    let reposition_arg = format!("// ARG=SP-(nArgs+5)\nD=M\n@{nargs}\nD=D-A\n@5\nD=D-A\n@ARG\nM=D\n");
 
-    let reposition_lcl = "@SP\nD=M\n@LCL\nM=D\n";
+    let reposition_lcl = "// LCL=SP\n@SP\nD=M\n@LCL\nM=D\n";
 
-    let goto_function = format!("@{}\n0;JMP\n", function_name);
+    let goto_function = format!("// goto\n@{}\n0;JMP\n", function_name);
 
     let define_return_label = format!("({})\n", return_label);
 
     Ok(format!(
-        "// call {}\n{}{}{}{}{}{}{}{}{}\n\n",
+        "// call {} {}\n{}{}{}{}{}{}{}{}{}\n",
         function_name,
+        nargs,
         save_return_address,
         save_lcl,
         save_arg,
@@ -141,39 +143,37 @@ pub fn write_call(function_name: &str, nargs: u8) -> Result<String> {
 // Writes assembly code that effects the return command
 pub fn write_return() -> Result<String> {
     // Save LCL as `frame`
-    let save_frame = "@LCL\nD=M\n@R13\nM=D\n";
+    let save_frame = "// frame=LCL\n@LCL\nD=M\n@frame\nM=D\n";
 
     // Save retAddr (frame - 5) dans R14
-    let save_ret_addr = "@5\nA=D-A\nD=M\n@R14\nM=D\n";
+    let save_ret_addr = "// retAddr (frame - 5)\n@5\nD=D-A\nA=D\nD=M\n@ret\nM=D\n";
     
     // ARG[0] = return value
-    let get_last_values = "@SP\nA=M-1\nD=M\n";
-    let updates_arg0 = "@ARG\nA=M\nM=D\n";
+    let get_last_values = "// *ARG=pop\n@SP\nM=M-1\nA=M\nD=M\n@ARG\nA=M\nM=D\n";
 
     // SP = ARG + 1
-    let updates_sp = "@ARG\nD=M+1\n@SP\nM=D\n";
+    let updates_sp = "// SP=ARG[1]\n@ARG\nD=M+1\n@SP\nM=D\n";
 
     // THAT = *(frame - 1)
-    let updates_that = "@R13\nD=M-1\nA=D\nD=M\n@THAT\nM=D\n";
+    let updates_that = "// THAT = *(frame - 1)\n@frame\nD=M\n@1\nD=D-A\nA=D\nD=M\n@THAT\nM=D\n";
 
     // THIS = *(frame - 2)
-    let updates_this = "@R13\nD=M\n@2\nA=D-A\nD=M\n@THIS\nM=D\n";
+    let updates_this = "// THIS = *(frame - 2)\n@frame\nD=M\n@2\nD=D-A\nA=D\nD=M\n@THIS\nM=D\n";
 
     // ARG = *(frame - 3)
-    let updates_arg = "@R13\nD=M\n@3\nA=D-A\nD=M\n@ARG\nM=D\n";
+    let updates_arg = "// ARG = *(frame - 3)\n@frame\nD=M\n@3\nD=D-A\nA=D\nD=M\n@ARG\nM=D\n";
 
     // LCL = *(frame - 4)
-    let updates_lcl = "@R13\nD=M\n@4\nA=D-A\nD=M\n@LCL\nM=D\n";
+    let updates_lcl = "// LCL = *(frame - 4)\n@frame\nD=M\n@4\nD=D-A\nA=D\nD=M\n@LCL\nM=D\n";
 
     // Jump to retAdr
-    let jump_to_ret = "@R14\nA=M\n0;JMP\n";
+    let jump_to_ret = "@ret\nA=M\n0;JMP\n";
 
     Ok(format!(
-        "// return\n{}{}{}{}{}{}{}{}{}{}",
+        "// return\n{}{}{}{}{}{}{}{}{}\n",
         save_frame,
         save_ret_addr,
         get_last_values,
-        updates_arg0,
         updates_sp,
         updates_that,
         updates_this,
@@ -186,11 +186,35 @@ pub fn write_return() -> Result<String> {
 // Generates bootstarp code & call Sys.init
 pub fn write_bootstrap() -> Result<String> {
     let init_sp = "@256\nD=A\n@SP\nM=D\n"; // SP = 256
-    let call_sys_init = write_call("Sys.init", 0)?; // Call Sys.init()
+    // let call_sys_init = write_call("Sys.init", 0)?; // Call Sys.init()
+    let save_return_address = format!("@BOOTSTRAP\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
+
+    let save_lcl = "@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+    let save_arg = "@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+    let save_this = "@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+    let save_that = "@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+
+    let reposition_arg = format!("D=M\n@0\nD=D-A\n@5\nD=D-A\n@ARG\nM=D\n");
+
+    let reposition_lcl = "@SP\nD=M\n@LCL\nM=D\n";
+
+    let goto_function = "@Sys.init\n0;JMP\n";
+
+    let define_return_label = "(BOOTSTRAP)\n";
 
     Ok(format!(
-        "// Bootstrap Code\n{}{}",
-        init_sp, call_sys_init
+        "// Bootstrap Code\n{}\n{}{}{}{}{}{}{}{}{}\n",
+        init_sp, 
+        // call_sys_init,
+        save_return_address,
+        save_lcl,
+        save_arg,
+        save_this,
+        save_that,
+        reposition_arg,
+        reposition_lcl,
+        goto_function,
+        define_return_label
     ))
 }
 
@@ -209,7 +233,7 @@ fn write_push(index: &u16, label: &str, segment: &str) -> String {
         )
     } else {
         format!(
-            "// push {segment} {index}\n@{index}\nD=A\n@{label}\nA=D+M\nD=M{}\n\n",
+            "// push {segment} {index}\n@{index}\nD=A\n@{label}\nA=M\nD=D+A\nA=D\nD=M{}\n\n",
             asm::PUSH_X
         )
     }
@@ -217,9 +241,10 @@ fn write_push(index: &u16, label: &str, segment: &str) -> String {
 
 // Writes push STATIC command
 fn write_push_static(filename: &str, index: &u16) -> String {
-    let count = STATIC_COUNT + index;
+    // let count = STATIC_COUNT + index;
     format!(
-        "// push static {index}\n@{index}\nD=A\n@{filename}.{index}\n@{count}\nD=M{}\n\n",
+        // "// push static {index}\n@{index}\nD=A\n@{filename}.{index}\n@{count}\nD=M{}\n\n",
+        "// push static {index}\n@{filename}.{index}\nD=M{}\n\n",
         asm::PUSH_X
     )
 }
@@ -255,9 +280,10 @@ fn write_pop(index: &u16, label: &str, segment: &str) -> String {
 
 // Writes pop STATIC command
 fn write_pop_static(filename: &str, index: &u16) -> String {
-    let count = STATIC_COUNT + index;
+    // let count = STATIC_COUNT + index;
     format!(
-        "// pop static {index}{}\n@{filename}.{index}\n@{count}\nM=D\n\n",
+        // "// pop static {index}{}\n@{filename}.{index}\n@{count}\nM=D\n\n",
+        "// pop static {index}{}\n@{filename}.{index}\nM=D\n\n",
         asm::POP_Y
     )
 }

@@ -12,9 +12,9 @@ use std::{fs::File, path::PathBuf};
 
 pub fn translate(input: &str) -> std::io::Result<()> {
 
-    let (files, mut output, output_name) = handle_path(input)?;
+    let (files, mut output) = handle_path(input)?;
 
-    println!("__FILES__: {:?}", files);
+    let mut file_name = String::new();
 
     // Getting all instructions from the parser
     let instructions = parse_file(files)?;
@@ -25,45 +25,46 @@ pub fn translate(input: &str) -> std::io::Result<()> {
 
     // Translate instructions into asm commands
     for instruction in instructions {
-        let code: String = match instruction {
-            CommandType::NewFile(filename) => {
-                format!("// {}\n", filename)
-            }
+        let mut code: String = String::new();
+        match instruction {
+            CommandType::NewFile(fname) => {
+                file_name = fname
+            },
             CommandType::Arithmetic(command) => {
                 let cmd = write_arithmetic(&command)?;
-                format!("{}", cmd)
+                code = format!("{}", cmd)
             }
             CommandType::Push(_, _) => {
-                let cmd = write_push_pop(&instruction, output_name.as_str())?;
-                format!("{}", cmd)
+                let cmd = write_push_pop(&instruction, &file_name)?;
+                code = format!("{}", cmd)
             }
             CommandType::Pop(_, _) => {
-                let cmd = write_push_pop(&instruction, output_name.as_str())?;
-                format!("{}", cmd)
+                let cmd = write_push_pop(&instruction, &file_name)?;
+                code = format!("{}", cmd)
             }
             CommandType::Call(function_name, nargs) => {
                 let cmd = write_call(&function_name, nargs)?;
-                format!("{}", cmd)
+                code = format!("{}", cmd)
             }
             CommandType::Function(function_name, nvars) => {
                 let cmd = write_function(&function_name, nvars)?;
-                format!("{}", cmd)
+                code = format!("{}", cmd)
             }
-            CommandType::Goto(label) => {
-                let cmd = write_goto(&label)?;
-                format!("{}", cmd)
+            CommandType::Goto(func_name, label) => {
+                let cmd = write_goto(&func_name, &label)?;
+                code = format!("{}", cmd)
             }
-            CommandType::If(label) => {
-                let cmd = write_if(&label)?;
-                format!("{}", cmd)
+            CommandType::If(func_name, label) => {
+                let cmd = write_if(&func_name, &label)?;
+                code = format!("{}", cmd)
             }
-            CommandType::Label(label) => {
-                let cmd = write_label(&label)?;
-                format!("{}", cmd)
+            CommandType::Label(func_name, label) => {
+                let cmd = write_label(&func_name, &label)?;
+                code = format!("{}", cmd)
             }
             CommandType::Return => {
                 let cmd = write_return()?;
-                format!("{}", cmd)
+                code = format!("{}", cmd)
             }
         };
         write!(output, "{}", code)?;
@@ -76,14 +77,8 @@ pub fn translate(input: &str) -> std::io::Result<()> {
 }
 
 // Handles path
-fn handle_path(input: &str) -> std::io::Result<(Vec<PathBuf>, File, String)> {
+fn handle_path(input: &str) -> std::io::Result<(Vec<PathBuf>, File)> {
     let path = Path::new(input);
-
-    let output_name = path
-        .file_stem()
-        .and_then(|name| name.to_str())
-        .unwrap_or("default")
-        .to_string();
 
     let output_path = if path.is_dir() {
         let filename = path
@@ -127,5 +122,18 @@ fn handle_path(input: &str) -> std::io::Result<(Vec<PathBuf>, File, String)> {
       }
   }
 
-    Ok((files, output, output_name))
+  files.sort_by(|a, b| {
+    let name_a = a.file_name().and_then(|f| f.to_str()).unwrap_or("");
+    let name_b = b.file_name().and_then(|f| f.to_str()).unwrap_or("");
+
+    if name_a == "Sys.vm" {
+        std::cmp::Ordering::Greater
+    } else if name_b == "Sys.vm" {
+        std::cmp::Ordering::Less
+    } else {
+        name_a.cmp(name_b)
+    }
+});
+
+    Ok((files, output))
 }

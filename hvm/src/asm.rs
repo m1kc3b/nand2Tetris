@@ -13,22 +13,27 @@ M=D
 
 pub const SUB: &str = r#"// sub
 @SP
-A=M-1
-D=-M
+A=M
+A=A-1
+A=A-1
+D=M
+A=A+1
+D=D-M
 @SP
 M=M-1
-@SP
-A=M-1
-D=D+M
+M=M-1
+A=M
 M=D
+@SP
+M=M+1
 
 "#;
+
 pub const POP_Y: &str = r#"
 @SP
-A=M-1
-D=M
-@SP
-M=M-1"#;
+M=M-1
+A=M
+D=M"#;
 
 pub const GET_X: &str = r#"
 @SP

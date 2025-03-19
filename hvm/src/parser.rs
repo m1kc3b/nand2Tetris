@@ -18,13 +18,13 @@ pub enum CommandType {
     Arithmetic(String),       // command
     Push(MemorySegment, u16), // arg1, arg2
     Pop(MemorySegment, u16),  // arg1, arg2
-    Label(String),            // label
-    Goto(String),             // label
-    If(String),               // label
+    Label(String, String),    // FunctionName, label
+    Goto(String, String),     // FunctionName, label
+    If(String, String),       // FunctionName, label
     Function(String, u8),     // functionName, nVars
     Call(String, u8),         // functionName, nArgs
     Return,
-    NewFile(String),
+    NewFile(String),          // Filename
 }
 
 // Parses a given file into a Vec<CommandType>
@@ -35,8 +35,9 @@ pub fn parse_file(files: Vec<PathBuf>) -> io::Result<Vec<CommandType>> {
         let f = File::open(&file)?;
         let reader = io::BufReader::new(f);
 
-        let filename = get_file_name(&file);
-        commands.push(CommandType::NewFile(filename));
+        let mut func_name = String::new();
+
+        commands.push(CommandType::NewFile(get_file_name(&file)));
 
         for line in reader.lines() {
             let line = line?;
@@ -52,23 +53,24 @@ pub fn parse_file(files: Vec<PathBuf>) -> io::Result<Vec<CommandType>> {
             } else if line.starts_with("pop") {
                 let (segment, index) = get_args(&line);
                 commands.push(CommandType::Pop(segment, index));
-            } else if line.starts_with("label") {
-                let label = handle_label(&line);
-                commands.push(CommandType::Label(label));
-            } else if line.starts_with("goto") {
-                let label = handle_label(&line);
-                commands.push(CommandType::Goto(label));
-            } else if line.starts_with("if-goto") {
-                let label = handle_label(&line);
-                commands.push(CommandType::If(label));
             } else if line.starts_with("function") {
                 let (function_name, nvars) = get_function_name_and_nvars(&line);
+                func_name = function_name.clone();
                 commands.push(CommandType::Function(function_name, nvars));
             } else if line.starts_with("call") {
                 let (function_name, nargs) = get_function_name_and_nvars(&line);
                 commands.push(CommandType::Call(function_name, nargs));
             } else if line.starts_with("return") {
                 commands.push(CommandType::Return);
+            } else if line.starts_with("goto") {
+                let label = handle_label(&line);
+                commands.push(CommandType::Goto(func_name.clone(), label));
+            } else if line.starts_with("if-goto") {
+                let label = handle_label(&line);
+                commands.push(CommandType::If(func_name.clone(), label));
+            } else if line.starts_with("label") {
+                let label = handle_label(&line);
+                commands.push(CommandType::Label(func_name.clone(), label));
             }
         }
     }
@@ -116,6 +118,8 @@ fn get_function_name_and_nvars(line: &str) -> (String, u8) {
 
 // Get Filename
 fn get_file_name(file: &PathBuf) -> String {
-    let filename = file.file_name().unwrap_or_else(|| file.as_os_str());
-    format!("{}", filename.to_string_lossy())
+    file.file_stem()
+        .unwrap_or_else(|| file.as_os_str())
+        .to_string_lossy()
+        .into_owned()
 }
