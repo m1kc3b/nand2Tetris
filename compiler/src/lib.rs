@@ -1,3 +1,5 @@
-fn main() {
-    println!("Hello, world!");
-}
+mod tokenizer;
+mod compilation_engine;
+mod analyzer;
+
+pub use analyzer::analyze;
