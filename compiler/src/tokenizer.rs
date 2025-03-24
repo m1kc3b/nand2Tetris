@@ -37,11 +37,11 @@ pub enum Keyword {
     This,
 }
 
-pub fn tokenize(file: &str) -> Result<Vec<String>, io::Error> {
+pub fn tokenize(path: &str) -> Result<Vec<String>, io::Error> {
     let mut tokens: Vec<String> = Vec::new();
     tokens.push("<tokens>".to_string());
 
-    let f = File::open(file)?;
+    let f = File::open(path)?;
     let reader = io::BufReader::new(f);
     let mut inside_comment_block = false;
 
