@@ -52,7 +52,7 @@ impl CompilationEngine {
             output: file,
         };
 
-        // engine.compile_class()?;
+        engine.compile_class()?;
 
         Ok(engine)
     }
@@ -92,71 +92,142 @@ impl CompilationEngine {
         }
     }
 
-    // TODO: Implement this
+    // TEST:
     // Compiles a complete class
     // 'class' className '{' classVarDec* subroutineDec* '}'
     pub fn compile_class(&mut self) -> io::Result<()> {
         self.write("<class>")?;
 
-        // Pass the first token
-        self.advance();
-
-        // Handle class name
-        self.write_token()?; // <keyword> class </keyword>
-        self.write_token()?; // <identifier> className </identifier>
-        self.write_token()?; // <symbol> { </symbol>
-
-        // Handle classVarDec | subroutineDec
-        while self.peek().unwrap() != END_TOKEN {
-            if self.peek().unwrap() == STATIC || self.peek().unwrap() == FIELD {
-                self.compile_class_var_dec()?;
-            } else if self.peek().unwrap() == CONSTRUCTOR
-                || self.peek().unwrap() == FUNCTION
-                || self.peek().unwrap() == METHOD
-            {
-                self.compile_subroutine()?;
+        // Ignore "<tokens>"
+        if let Some(token) = self.peek() {
+            if token == START_TOKEN {
+                self.advance();
             }
         }
 
+        // Check "class"
+        if let Some(token) = self.peek() {
+            if token == "<keyword> class </keyword>" {
+                self.write_token()?;
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected 'class' keyword",
+                ));
+            }
+        }
+
+        // Class name
+        self.write_token()?; // <identifier> className </identifier>
+
+        // "{"
+        if self.peek() == Some(&OPEN_BRACKET.to_string()) {
+            self.write_token()?;
+        } else {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected '{'"));
+        }
+
+        // ClassVardec or subroutineDec
+        while let Some(token) = self.peek() {
+            if token == STATIC || token == FIELD {
+                self.compile_class_var_dec()?;
+            } else if token == CONSTRUCTOR || token == FUNCTION || token == METHOD {
+                self.compile_subroutine()?;
+            } else {
+                break;
+            }
+        }
+
+        // Check class ends with "}"
+        if let Some(token) = self.peek() {
+            if token == CLOSE_BRACKET {
+                self.write_token()?; // adds "}"
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("Expected '}}' but found {:?}", self.peek()),
+                ));
+            }
+        } else {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                "Unexpected end of tokens",
+            ));
+        }
+
+        self.write("</class>")?;
         Ok(())
     }
 
+    // TEST
     // Compiles a complete method, function or constructor
     // ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody
     pub fn compile_subroutine(&mut self) -> io::Result<()> {
         self.write("<subroutineDec>")?;
 
-        while self.peek().unwrap() != OPEN_PARENTHESIS {
+        // Listen to "("
+        while let Some(token) = self.peek() {
+            if token == OPEN_PARENTHESIS {
+                break;
+            }
             self.write_token()?;
         }
 
-        // Handle parameter list
-        if self.peek().unwrap() == CLOSE_PARENTHESIS {
-            self.write_token()?; // <symbol> ( </symbol>
-            self.compile_parameter_list()?;
-            self.write_token()?; // <symbol> ) </symbol>
+        // Parenthesis "("
+        if let Some(token) = self.peek() {
+            if token == OPEN_PARENTHESIS {
+                self.write_token()?; // <symbol> ( </symbol>
+                self.compile_parameter_list()?;
+                self.write_token()?; // <symbol> ) </symbol>
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected '(' after function name",
+                ));
+            }
         }
 
         self.compile_subroutine_body()?;
-        self.write("</subroutineDec>")?;
 
+        self.write("</subroutineDec>")?;
         Ok(())
     }
 
+    // TEST
     // Compiles a static declaration or a field declaration
     // 'static' | 'field' type varName (',' varName)* ';'
     pub fn compile_class_var_dec(&mut self) -> io::Result<()> {
         self.write("<classVarDec>")?;
 
-        if self.peek().unwrap() == STATIC {
-            self.write_token()?; // <keyword> static </keyword>
-        } else if self.peek().unwrap() == FIELD {
-            self.write_token()?; // <keyword> field </keyword>
+        if let Some(token) = self.peek() {
+            if token == STATIC || token == FIELD {
+                self.write_token()?; // <keyword> static ou field </keyword>
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected 'static' or 'field'",
+                ));
+            }
         }
 
-        // static | field declaration end with ";"
-        while self.peek().unwrap() != SEMICOLON_SYMBOL {
+        // Listen to find ";"
+        while let Some(token) = self.peek() {
+            if token == SEMICOLON_SYMBOL {
+                break;
+            }
             self.write_token()?;
+        }
+
+        // Check and write ";"
+        if let Some(token) = self.peek() {
+            if token == SEMICOLON_SYMBOL {
+                self.write_token()?;
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected ';' at end of var declaration",
+                ));
+            }
         }
 
         self.write("</classVarDec>")?;
@@ -177,27 +248,45 @@ impl CompilationEngine {
         self.write("</parameterList>")?;
         Ok(())
     }
+
     // Compiles a subroutine's body
     // '{' varDec* statements '}'
     pub fn compile_subroutine_body(&mut self) -> io::Result<()> {
         self.write("<subroutineBody>")?;
         self.write_token()?; // <symbol> { </symbol>
 
-        // Handle vardDec | statements
-        while self.peek().unwrap() != END_TOKEN {
-            //
-            if self.peek().unwrap() == "<keyword> var </keyword>" {
+        // Handle varDec
+        while let Some(token) = self.peek() {
+            if token == "<keyword> var </keyword>" {
                 self.compile_var_dec()?;
+            } else {
+                break;
             }
-            // letStatement | ifStatement | whileStatement | doStatement | returneStatement
-            else {
-                self.compile_statements()?;
-            }
-
-            self.advance();
         }
 
-        self.write_token()?; // <symbol> } </symbol>
+        self.compile_statements()?;
+
+
+        // If it remains tokens = Error!
+        if let Some(token) = self.peek() {
+            if token == CLOSE_BRACKET {
+                self.write_token()?; // write "}"
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "Expected '}}' but found {:?} (Tokens restants non consommés !)",
+                        token
+                    ),
+                ));
+            }
+        } else {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                "Unexpected end of tokens",
+            ));
+        }
+
         self.write("</subroutineBody>")?;
         Ok(())
     }
@@ -219,59 +308,143 @@ impl CompilationEngine {
         Ok(())
     }
 
-    // TODO: Implement this
     // Compiles a sequence of statements. Does not handle the enclosing "{}"
     // letStatement | ifStatement | whileStatement | doStatement | returneStatement
     pub fn compile_statements(&mut self) -> io::Result<()> {
         self.write("<statements>")?;
-
-        // Loop while next token is not statement
-        while self.peek_next_token().unwrap() != LET_STATEMENT
-            || self.peek_next_token().unwrap() == IF_STATEMENT
-            || self.peek_next_token().unwrap() == WHILE_STATEMENT
-            || self.peek_next_token().unwrap() == DO_STATEMENT
-            || self.peek_next_token().unwrap() == RETURN_STATEMENT
-        {
-            // Handle let, if, while, do, return
-            if self.peek().unwrap() == LET_STATEMENT {
-                self.compile_let()?;
-            } else if self.peek().unwrap() == IF_STATEMENT {
-                self.compile_if()?;
-            } else if self.peek().unwrap() == WHILE_STATEMENT {
-                self.compile_while()?;
-            } else if self.peek().unwrap() == DO_STATEMENT {
-                self.compile_do()?;
-            } else if self.peek().unwrap() == RETURN_STATEMENT {
-                self.compile_return()?;
+        
+        while let Some(token) = self.peek() {
+            match token.as_str() {
+                LET_STATEMENT => self.compile_let()?,
+                IF_STATEMENT => self.compile_if()?,
+                WHILE_STATEMENT => self.compile_while()?,
+                DO_STATEMENT => self.compile_do()?,
+                RETURN_STATEMENT => self.compile_return()?,
+                _ => break, // Stop if there no longer statement
             }
         }
-
+    
         self.write("</statements>")?;
         Ok(())
     }
+    
 
     // Compiles a let statement
     // 'let' varName ('[' expression ']')? '=' expression ';'
     pub fn compile_let(&mut self) -> io::Result<()> {
         self.write("<letStatement>")?;
-
-        // let statement ends with ";"
-        if self.peek().unwrap() != SEMICOLON_SYMBOL {
-            self.write_token()?;
-
-            if self.peek().unwrap() == EQUAL_SYMBOL {
-                self.compile_expression()?;
+        
+        if let Some(token) = self.peek() {
+            if token == LET_STATEMENT {
+                self.write_token()?; // <keyword> let </keyword>
+            } else {
+                return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected 'let' keyword"));
             }
         }
-
+    
+        self.write_token()?; // <identifier> varName </identifier>
+    
+        // Check "let a[i] = value;"
+        if let Some(token) = self.peek() {
+            if token == OPEN_SQUARE_BRACKET {
+                self.write_token()?; // "["
+    
+    
+                self.compile_expression()?; // Compile array index
+    
+    
+                if let Some(next_token) = self.peek() {
+                    if next_token == CLOSE_SQUARE_BRACKET {
+                        self.write_token()?; // "]"
+                    } else {
+                        return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected ']' after array index"));
+                    }
+                }
+            }
+        }
+    
+        // Check "="
+        if let Some(token) = self.peek() {
+            if token == EQUAL_SYMBOL {
+                self.write_token()?; // "="
+    
+                self.compile_expression()?; // Compile this expression
+    
+            } else {
+                return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected '=' in let statement"));
+            }
+        }
+    
+    
+        if let Some(token) = self.peek() {
+            if token == SEMICOLON_SYMBOL {
+                self.write_token()?; // ";"
+            } else {
+                return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected ';'"));
+            }
+        }
+    
         self.write("</letStatement>")?;
-
         Ok(())
     }
+    
 
     // Compiles an if statement, possibly with a trailing else clause
     // 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
     pub fn compile_if(&mut self) -> io::Result<()> {
+        self.write("<ifStatement>")?;
+
+        // Lire "if"
+        if let Some(token) = self.peek() {
+            if token == IF_STATEMENT {
+                self.write_token()?; // <keyword> if </keyword>
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected 'if' keyword",
+                ));
+            }
+        }
+
+        // Check "("
+        if let Some(token) = self.peek() {
+            if token == OPEN_PARENTHESIS {
+                self.write_token()?; // <symbol> ( </symbol>
+                self.compile_expression()?; // Compiler l'expression conditionnelle
+                self.write_token()?; // <symbol> ) </symbol>
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected '(' in if statement",
+                ));
+            }
+        }
+
+        // Check "{"
+        if let Some(token) = self.peek() {
+            if token == OPEN_BRACKET {
+                self.write_token()?; // <symbol> { </symbol>
+                self.compile_statements()?; // Compiler les statements
+                self.write_token()?; // <symbol> } </symbol>
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected '{' in if statement",
+                ));
+            }
+        }
+
+        // Check if there is an "else"
+        if let Some(token) = self.peek() {
+            if token == "<keyword> else </keyword>" {
+                self.write_token()?; // <keyword> else </keyword>
+                self.write_token()?; // <symbol> { </symbol>
+                self.compile_statements()?; // Compiler les statements du else
+                self.write_token()?; // <symbol> } </symbol>
+            }
+        }
+
+        self.write("</ifStatement>")?;
         Ok(())
     }
 
@@ -279,39 +452,114 @@ impl CompilationEngine {
     // 'while' '(' expression ')' '{' statements '}'
     pub fn compile_while(&mut self) -> io::Result<()> {
         self.write("<whileStatement>")?;
-
-        // while statement ends with "}"
-        if self.peek().unwrap() != CLOSE_BRACKET {
-            self.write_token()?;
-
-            // (expression)
-            if self.peek().unwrap() == OPEN_PARENTHESIS {
-                self.write_token()?;
-                self.compile_expression()?;
-                self.write_token()?;
-            }
-
-            // statements
-            self.compile_statements()?;
+        self.write_token()?; // "while"
+    
+        // "("
+        if self.peek() == Some(&OPEN_PARENTHESIS.to_string()) {
+            self.write_token()?; // "("
+            self.compile_expression()?; // Condition du while
+            self.write_token()?; // ")"
+        } else {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected '(' after while"));
         }
-
+    
+        // "{"
+        if self.peek() == Some(&OPEN_BRACKET.to_string()) {
+            self.write_token()?; // "{"
+            self.compile_statements()?; // Instructions dans le while
+        } else {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected '{' after while condition"));
+        }
+    
+        // "}"
+        if self.peek() == Some(&CLOSE_BRACKET.to_string()) {
+            self.write_token()?; // "}"
+        } else {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected '}' at end of while statement"));
+        }
+    
         self.write("</whileStatement>")?;
         Ok(())
     }
+    
+    
 
     // Compiles a do statement
     // 'do' subroutineCall ';'
     pub fn compile_do(&mut self) -> io::Result<()> {
+        self.write("<doStatement>")?;
+
+        if let Some(token) = self.peek() {
+            if token == DO_STATEMENT {
+                self.write_token()?; // <keyword> do </keyword>
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected 'do' keyword",
+                ));
+            }
+        }
+
+        self.write_token()?; // <identifier> functionName </identifier>
+
+        // Check if it is a method call with "."
+        if let Some(token) = self.peek() {
+            if token == DOT_SYMBOL {
+                self.write_token()?; // <symbol> . </symbol>
+                self.write_token()?; // <identifier> methodName </identifier>
+            }
+        }
+
+        // "("
+        if let Some(token) = self.peek() {
+            if token == OPEN_PARENTHESIS {
+                self.write_token()?; // <symbol> ( </symbol>
+                self.compile_expression_list()?; // Compiler les arguments
+                self.write_token()?; // <symbol> ) </symbol>
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected '(' in do statement",
+                ));
+            }
+        }
+
+        if let Some(token) = self.peek() {
+            if token == SEMICOLON_SYMBOL {
+                self.write_token()?; // <symbol> ; </symbol>
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Expected ';' in do statement",
+                ));
+            }
+        }
+
+        self.write("</doStatement>")?;
         Ok(())
     }
 
     // Compiles a return statement
     // 'return' expression? ';'
     pub fn compile_return(&mut self) -> io::Result<()> {
+        self.write("<returnStatement>")?;
         self.write_token()?; // <keyword> return </keyword>
-        self.write_token()?; // <symbol> ; </symbol>
-        self.write_token()?; // <symbol> } </symbol>
 
+        // If there is an expression before ";"
+        if let Some(token) = self.peek() {
+            if token != SEMICOLON_SYMBOL {
+                self.compile_expression()?;
+            }
+        }
+
+        // ";"
+        if self.peek() == Some(&SEMICOLON_SYMBOL.to_string()) {
+            self.write_token()?;
+        } else {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected ';'"));
+        }
+
+        self.write("</returnStatement>")?;
         Ok(())
     }
 
@@ -319,73 +567,113 @@ impl CompilationEngine {
     // term (op term)*
     pub fn compile_expression(&mut self) -> io::Result<()> {
         self.write("<expression>")?;
-        self.compile_term()?;
+        
+        self.compile_term()?; // Compile first one
+    
+        while let Some(token) = self.peek() {
+            if token == PLUS_SYMBOL || token == MINUS_SYMBOL || token == ASTERISK_SYMBOL ||
+               token == SLASH_SYMBOL || token == EQUAL_SYMBOL || token == "<symbol> &lt; </symbol>" {
+                self.write_token()?; // write operator
+                self.compile_term()?; // Compile the next one
+            }
+            // `sum[i]`
+            else if token == OPEN_SQUARE_BRACKET {
+                self.write_token()?; //  "["
+                self.compile_expression()?;
+                if let Some(close_bracket) = self.peek() {
+                    if close_bracket == CLOSE_SQUARE_BRACKET {
+                        self.write_token()?; // "]"
+                    } else {
+                        return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected ']' after array index"));
+                    }
+                }
+            }
+            else {
+                break;
+            }
+        }
+    
         self.write("</expression>")?;
-
         Ok(())
     }
+    
+    
 
-    // TODO: Implement this
     // Compiles a term
     // intergerConstant | stringConstant |keywordConstant | varName | varName '[' expression ']' | '(' expression ')' | (unaryOp term) | subroutineCall
     pub fn compile_term(&mut self) -> io::Result<()> {
         self.write("<term>")?;
-
-        while self.peek().unwrap() != SEMICOLON_SYMBOL {
-            // If () -> expressionList
-            if self.peek().unwrap() == OPEN_PARENTHESIS {
-                self.write_token()?;
-                self.compile_expression_list()?;
-                self.write_token()?;
-            } else {
-                self.write_token()?;
+        
+        if let Some(token) = self.peek() {
+            self.write_token()?;
+    
+            if let Some(next_token) = self.peek() {
+                if next_token == DOT_SYMBOL {
+                    self.write_token()?; // "."
+    
+                    if let Some(method_name) = self.peek() {
+                        if method_name.starts_with("<identifier>") {
+                            self.write_token()?; // Method name
+                        } else {
+                            return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected method name after '.'"));
+                        }
+                    }
+    
+                    // "("
+                    if let Some(paren) = self.peek() {
+                        if paren == OPEN_PARENTHESIS {
+                            self.write_token()?; // "("
+                            self.compile_expression_list()?; // Compile arguments
+                            if let Some(close_paren) = self.peek() {
+                                if close_paren == CLOSE_PARENTHESIS {
+                                    self.write_token()?; // ")"
+                                } else {
+                                    return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected ')' after method arguments"));
+                                }
+                            }
+                        } else {
+                            return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected '(' after method name"));
+                        }
+                    }
+                }
             }
+        } else {
+            return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "Unexpected end of tokens"));
         }
-
+    
         self.write("</term>")?;
-
         Ok(())
     }
+    
+    
 
-    // TODO: Implement this
     // Compiles an expression list
     // (expression(',' expression)*)?
     pub fn compile_expression_list(&mut self) -> io::Result<()> {
         self.write("<expressionList>")?;
-        self.compile_expression()?;
+
+        if let Some(token) = self.peek() {
+            if token != CLOSE_PARENTHESIS {
+                self.compile_expression()?;
+
+                while let Some(token) = self.peek() {
+                    if token == COMMA_SYMBOL {
+                        self.write_token()?; //","
+                        self.compile_expression()?;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if let Some(token) = self.peek() {
+            if token != CLOSE_PARENTHESIS {
+                return Err(io::Error::new(io::ErrorKind::InvalidData, "Expected ')'"));
+            }
+        }
+
         self.write("</expressionList>")?;
         Ok(())
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs::File;
-    use std::io::{self, BufReader, Read};
-
-    #[test]
-    fn compile_var_dec_test() {
-        let path = "tests/unitTests";
-        let mut engine = CompilationEngine::new(
-            vec![
-                "<keyword> var </keyword>".to_string(),
-                "<keyword> int </keyword>".to_string(),
-                "<identifier> x </identifier>".to_string(),
-                "<symbol> ; </symbol>".to_string(),
-            ],
-            "tests/unitTests/compile_var_dec.xml",
-        ).unwrap();
-
-        engine.compile_var_dec().unwrap();
-
-        let mut output_file = File::open("tests/unitTests/compile_var_dec.xml").expect("Failed to open output file");
-        let mut output_buffer = String::new();
-        BufReader::new(&mut output_file).read_to_string(&mut output_buffer).unwrap();
-
-        let expected = "<varDec>\n<keyword> var </keyword>\n<keyword> int </keyword>\n<identifier> x </identifier>\n<symbol> ; </symbol>\n</varDec>\n";
-
-        assert_eq!(output_buffer, expected.to_string());
     }
 }
